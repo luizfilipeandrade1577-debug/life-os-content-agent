@@ -2,6 +2,94 @@ const pages={dashboard:["Dashboard","Visão geral do seu sistema de conteúdo."]
 const labels={dashboard:"Dashboard",insights:"Insights",contents:"Conteúdos",approval:"Aprovação",calendar:"Calendário",analytics:"Métricas",rules:"Regras"};
 const seed={insights:[{title:"Autoridade sem entregar toda a execução",body:"Mostrar domínio do problema, explicar o que e por quê, usar cases e complexidade.",source:"Estudo",status:"INSIGHT"}],contents:[{title:"IA NÃO COMEÇA PELA FERRAMENTA. COMEÇA PELO PROBLEMA.",format:"Carrossel",status:"APROVADO",caption:"Problema → Processo → Dados → Solução → Tecnologia.",objective:"Autoridade e educação",script:"Carrossel aprovado com 9 slides.",cta:"Seguir →",hashtags:"#InteligenciaArtificial #Automacao #Gestao #Processos #Tecnologia #Negocios",notes:"Post #001 aprovado.",media_urls:[]}]};
 let data={insights:[],contents:[]},client=null,currentUser=null,remoteReady=false,currentContentId=null;
+const POST001={
+ title:"IA NÃO COMEÇA PELA FERRAMENTA. COMEÇA PELO PROBLEMA.",
+ objective:"Mostrar que IA e automação devem partir de um problema real de negócio, reforçando autoridade em tecnologia aplicada à gestão e processos.",
+ format:"Carrossel",
+ script:`Slide 1
+IA NÃO COMEÇA PELA FERRAMENTA.
+COMEÇA PELO PROBLEMA.
+
+Tecnologia só faz sentido quando resolve algo real.
+
+Slide 2
+Talvez a pergunta esteja errada.
+
+“Qual IA devo implementar na minha empresa?”
+
+Antes da ferramenta, existem perguntas mais importantes.
+
+Slide 3
+Onde perdemos tempo?
+Onde existe retrabalho?
+Onde informações se perdem?
+O que depende demais de trabalho manual?
+O que poderia ser padronizado?
+
+Slide 4
+Existe uma ordem:
+
+Problema → Processo → Dados → Solução → Tecnologia
+
+Slide 5
+Sem processo, a tecnologia não resolve.
+
+Automatizar um processo ruim
+só faz o problema acontecer mais rápido.
+
+Slide 6
+Com processo, a tecnologia libera o que importa:
+
+- menos tarefas operacionais
+- menos erros
+- mais produtividade
+- mais tempo para decidir
+- mais foco no que gera valor
+
+Slide 7
+Na prática, isso pode gerar:
+
+- redução de custos
+- mais eficiência
+- melhor entrega
+- mais controle
+- capacidade de escalar
+
+Slide 8
+Tecnologia não é moda.
+É alavanca.
+
+IA, automação e sistemas devem entrar quando resolvem um problema e geram valor real.
+
+Slide 9
+Construindo na prática.
+
+Aqui vou compartilhar projetos, cases, aprendizados e aplicações reais de IA, automação e gestão.
+
+Seguir →`,
+ caption:`A pergunta não deveria ser apenas:
+
+“Qual IA devo implementar na minha empresa?”
+
+Antes da tecnologia, vem algo mais importante: entender o problema.
+
+Onde existe retrabalho?
+Onde perdemos tempo?
+Onde informações se perdem?
+O que ainda depende demais de trabalho manual?
+
+A sequência que faz mais sentido é:
+
+Problema → Processo → Dados → Solução → Tecnologia
+
+Tecnologia não é o objetivo. É a alavanca.
+
+É essa visão que quero compartilhar por aqui: projetos, aprendizados, aplicações e bastidores de soluções construídas na prática.`,
+ cta:"Se esse assunto faz sentido para você, acompanhe os próximos conteúdos.",
+ hashtags:"#InteligenciaArtificial #Automacao #Gestao #Processos #Tecnologia #Negocios",
+ notes:"Manter a identidade aprovada: fundo preto/navy, tipografia branca forte, detalhes em azul, visual limpo e profissional. Pouco texto por bloco, bastante contraste, sem aparência genérica de post de IA. Slide 1 pode usar sua imagem; demais slides priorizam processo, operação, tecnologia e ambiente empresarial."
+};
+
 const $=id=>document.getElementById(id);
 function esc(v=""){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function saveLocal(){localStorage.setItem("lifeos-content",JSON.stringify(data));render()}
@@ -25,8 +113,16 @@ function closeEditor(){$("editorModal").classList.remove("open");currentContentI
 function openEditor(id){
  const c=data.contents.find(x=>String(x.id)===String(id)); if(!c)return;
  currentContentId=id;
- $("eTitle").value=c.title||"";$("eFormat").value=["Carrossel","Reel","Post estático","Story","A definir"].includes(c.format)?c.format:"A definir";
- $("eObjective").value=c.objective||"";$("eScript").value=c.script||"";$("eCaption").value=c.caption||"";$("eCta").value=c.cta||"";$("eHashtags").value=c.hashtags||"";$("eNotes").value=c.notes||"";
+ const isPost001=(c.title||"").trim().toUpperCase()===POST001.title;
+ const val=(field)=>isPost001?(c[field]||POST001[field]||""):(c[field]||"");
+ $("eTitle").value=c.title||"";
+ $("eFormat").value=isPost001?POST001.format:(["Carrossel","Reel","Post estático","Story","A definir"].includes(c.format)?c.format:"A definir");
+ $("eObjective").value=val("objective");
+ $("eScript").value=val("script");
+ $("eCaption").value=val("caption");
+ $("eCta").value=val("cta");
+ $("eHashtags").value=val("hashtags");
+ $("eNotes").value=val("notes");
  $("editorModal").classList.add("open");
 }
 function editorPayload(){return {title:$("eTitle").value.trim(),format:$("eFormat").value,objective:$("eObjective").value.trim(),script:$("eScript").value.trim(),caption:$("eCaption").value.trim(),cta:$("eCta").value.trim(),hashtags:$("eHashtags").value.trim(),notes:$("eNotes").value.trim()}}
