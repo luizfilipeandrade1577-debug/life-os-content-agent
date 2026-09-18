@@ -1,7 +1,7 @@
 const pages={dashboard:["Dashboard","Visão geral do seu sistema de conteúdo."],insights:["Inbox de Insights","Capture ideias antes que elas se percam."],contents:["Conteúdos","Acompanhe a produção editorial."],approval:["Aprovação","Controle humano antes de qualquer publicação."],calendar:["Calendário","Planejamento editorial e agendamentos."],analytics:["Métricas","Resultados e aprendizado do agente."],rules:["Regras Editoriais","A identidade que orienta o agente."]};
 const labels={dashboard:"Dashboard",insights:"Insights",contents:"Conteúdos",approval:"Aprovação",calendar:"Calendário",analytics:"Métricas",rules:"Regras"};
 const seed={insights:[{id:"local-i1",title:"Autoridade sem entregar toda a execução",body:"Mostrar domínio do problema, explicar o que e por quê, usar cases e complexidade.",source:"Estudo",status:"INSIGHT"}],contents:[{id:"local-c1",title:"IA NÃO COMEÇA PELA FERRAMENTA. COMEÇA PELO PROBLEMA.",format:"Carrossel • 9 slides",status:"APROVADO",caption:"Problema → Processo → Dados → Solução → Tecnologia.",scheduled_at:null}]};
-let data=JSON.parse(localStorage.getItem("lifeos-content")||"null")||structuredClone(seed);
+let data={insights:[],contents:[]};
 let client=null, currentUser=null, remoteReady=false;
 
 const $=id=>document.getElementById(id);
@@ -68,7 +68,7 @@ async function initSupabase(){
  }catch(e){setDbState("LOCAL","Falha de conexão");console.error(e)}
 }
 async function refreshRemote(){
- if(!currentUser){remoteReady=false;setDbState("LOCAL","Entre para sincronizar");renderAuth();return}
+ if(!currentUser){remoteReady=false;data={insights:[],contents:[]};setDbState("OFFLINE","Faça login");renderAuth();render();return}
  const [{data:ins,error:ei},{data:con,error:ec}]=await Promise.all([
    client.from("insights").select("*").order("created_at",{ascending:false}),
    client.from("contents").select("*").order("created_at",{ascending:false})
@@ -89,6 +89,8 @@ function renderAuth(){
  $("authBtn").textContent=currentUser?"Conta":"Entrar";
  $("authInfo").textContent=currentUser?currentUser.email:"Sem login";
  $("logoutBtn").style.display=currentUser?"block":"none";
+ $("loginGate").style.display=currentUser?"none":"grid";
+ $("appShell").classList.toggle("auth-hidden",!currentUser);
 }
 async function signIn(){
  const email=$("authEmail").value.trim(),password=$("authPassword").value;
@@ -101,6 +103,6 @@ async function signUp(){
  const {error}=await client.auth.signUp({email,password}); if(error)return alert(error.message);
  alert("Conta criada. Se a confirmação de e-mail estiver ativa no Supabase, confirme o e-mail antes de entrar.");
 }
-async function signOut(){if(client)await client.auth.signOut();currentUser=null;remoteReady=false;data=JSON.parse(localStorage.getItem("lifeos-content")||"null")||structuredClone(seed);setDbState("LOCAL","Entre para sincronizar");renderAuth();render()}
+async function signOut(){if(client)await client.auth.signOut();currentUser=null;remoteReady=false;data={insights:[],contents:[]};localStorage.removeItem("lifeos-content");setDbState("OFFLINE","Faça login");renderAuth();render()}
 
 render();initSupabase();
