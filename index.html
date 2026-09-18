@@ -1,34 +1,27 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
+<!doctype html><html lang="pt-BR"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LIFE OS — Content Agent</title>
 <style>
-:root{--bg:#070b12;--panel:#0d1420;--panel2:#111b2a;--text:#eef5ff;--muted:#8493a7;--blue:#1687ff;--line:#1d2b3e;--green:#31d0aa;--red:#ff6577}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,system-ui,Arial}
-button,input,textarea,select{font:inherit}.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
-aside{border-right:1px solid var(--line);padding:24px 16px;background:#080d15;position:sticky;top:0;height:100vh}
+:root{--bg:#070b12;--panel:#0d1420;--panel2:#111b2a;--text:#eef5ff;--muted:#8493a7;--blue:#1687ff;--line:#1d2b3e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,system-ui,Arial}button,input,textarea,select{font:inherit}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}aside{border-right:1px solid var(--line);padding:24px 16px;background:#080d15;position:sticky;top:0;height:100vh}
 .brand{font-size:20px;font-weight:800}.brand span{color:var(--blue)}.sub{color:var(--muted);font-size:12px;margin:4px 0 26px}
 nav button{display:block;width:100%;text-align:left;padding:11px 12px;margin:4px 0;border:0;border-radius:9px;background:transparent;color:var(--muted);cursor:pointer}
 nav button.active,nav button:hover{background:var(--panel2);color:white}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--blue);margin-right:9px}
-main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
-h1{font-size:26px;margin:0}.muted{color:var(--muted)}.btn{border:0;border-radius:9px;padding:10px 14px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer}.btn.ghost{background:var(--panel2);color:var(--text)}.btn.danger{background:#39141c;color:#ff9dab}
+main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}h1{font-size:26px;margin:0}.muted{color:var(--muted)}
+.btn{border:0;border-radius:9px;padding:10px 14px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer}.btn.ghost{background:var(--panel2);color:var(--text)}.btn.danger{background:#39141c;color:#ff9dab}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:17px}.metric b{font-size:27px;display:block;margin-top:8px}
-.two{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:14px}.list{display:flex;flex-direction:column;gap:9px}.item{padding:13px;border:1px solid var(--line);border-radius:10px;background:#0a111c;display:flex;justify-content:space-between;gap:12px;align-items:center}.badge{font-size:11px;padding:5px 8px;border-radius:99px;background:#10243e;color:#7abaff;white-space:nowrap}.badge.ok{background:#0e2a24;color:#63e1be}
+.two{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:14px}.list{display:flex;flex-direction:column;gap:9px}.item{padding:13px;border:1px solid var(--line);border-radius:10px;background:#0a111c;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.badge{font-size:11px;padding:5px 8px;border-radius:99px;background:#10243e;color:#7abaff;white-space:nowrap}.badge.ok{background:#0e2a24;color:#63e1be}
 .section{display:none}.section.active{display:block}.form{display:grid;gap:10px}.form input,.form textarea,.form select{width:100%;background:#08101a;border:1px solid var(--line);color:white;padding:11px;border-radius:9px}.form textarea{min-height:120px;resize:vertical}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap}.empty{padding:34px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}.rule{border-left:3px solid var(--blue);padding-left:12px;margin:12px 0}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{min-height:90px;border:1px solid var(--line);border-radius:9px;padding:8px;color:var(--muted)}.day b{color:white}.event{margin-top:8px;padding:6px;background:#10243e;color:#8bc2ff;border-radius:6px;font-size:11px}
-.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:20px}.modal.open{display:flex}.modal .card{width:min(620px,100%)}
-@media(max-width:850px){.app{grid-template-columns:1fr}aside{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}nav{display:flex;overflow:auto;gap:4px}nav button{white-space:nowrap;width:auto}.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}main{padding:18px}.calendar{grid-template-columns:repeat(2,1fr)}}
-</style>
-</head>
-<body><div class="app">
-<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">CONTENT AGENT • v0.1</div><nav id="nav"></nav></aside>
-<main>
-<div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="desc">Visão geral do seu sistema de conteúdo.</div></div><button class="btn" onclick="openInsight()">+ Novo insight</button></div>
-<section id="dashboard" class="section active">
-<div class="grid" id="metrics"></div>
-<div class="two"><div class="card"><h3>Fila de produção</h3><div class="list" id="queue"></div></div><div class="card"><h3>Próximos passos</h3><div class="list"><div class="item"><span>Capturar novos insights</span><span class="badge">INBOX</span></div><div class="item"><span>Revisar conteúdo antes de publicar</span><span class="badge">HUMANO</span></div><div class="item"><span>Conectar Instagram API</span><span class="badge">ETAPA 2</span></div></div></div></div>
-</section>
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}.empty{padding:34px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}.rule{border-left:3px solid var(--blue);padding-left:12px;margin:12px 0}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{min-height:90px;border:1px solid var(--line);border-radius:9px;padding:8px;color:var(--muted)}.day b{color:white}.event{margin-top:8px;padding:6px;background:#10243e;color:#8bc2ff;border-radius:6px;font-size:11px}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:20px;z-index:20}.modal.open{display:flex}.modal .card{width:min(620px,100%)}.account{display:flex;align-items:center;gap:8px}.statusbar{display:flex;gap:8px;align-items:center;margin-top:16px;font-size:12px}
+@media(max-width:850px){.app{grid-template-columns:1fr}aside{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}nav{display:flex;overflow:auto;gap:4px}nav button{white-space:nowrap;width:auto}.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}main{padding:18px}.calendar{grid-template-columns:repeat(2,1fr)}.top{align-items:flex-start;flex-wrap:wrap}}
+</style></head><body><div class="app">
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">CONTENT AGENT • v0.2</div><nav id="nav"></nav><div class="statusbar"><span id="dbState" class="badge">LOCAL</span><span id="dbHint" class="muted">Carregando...</span></div></aside>
+<main><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="desc">Visão geral do seu sistema de conteúdo.</div></div><div class="account"><span id="authInfo" class="muted">Sem login</span><button id="authBtn" class="btn ghost" onclick="openAuth()">Entrar</button><button class="btn" onclick="openInsight()">+ Novo insight</button></div></div>
+<section id="dashboard" class="section active"><div class="grid" id="metrics"></div><div class="two"><div class="card"><h3>Fila de produção</h3><div class="list" id="queue"></div></div><div class="card"><h3>Próximos passos</h3><div class="list"><div class="item"><span>Capturar novos insights</span><span class="badge">INBOX</span></div><div class="item"><span>Revisar conteúdo antes de publicar</span><span class="badge">HUMANO</span></div><div class="item"><span>Conectar Instagram API</span><span class="badge">ETAPA 2</span></div></div></div></div></section>
 <section id="insights" class="section"><div class="card"><h3>Inbox de Insights</h3><div class="list" id="insightList"></div></div></section>
 <section id="contents" class="section"><div class="card"><h3>Conteúdos</h3><div class="list" id="contentList"></div></div></section>
 <section id="approval" class="section"><div class="card"><h3>Aguardando aprovação</h3><div class="list" id="approvalList"></div></div></section>
@@ -37,28 +30,6 @@ h1{font-size:26px;margin:0}.muted{color:var(--muted)}.btn{border:0;border-radius
 <section id="rules" class="section"><div class="card"><h3>Identidade editorial v1</h3><div class="rule"><b>Posicionamento</b><br><span class="muted">IA, automação e gestão aplicadas a problemas reais de empresas.</span></div><div class="rule"><b>Narrativa</b><br><span class="muted">Aprender → aplicar → construir → medir → compartilhar.</span></div><div class="rule"><b>Visual</b><br><span class="muted">Preto/navy, branco, azul; moderno, profissional e natural.</span></div><div class="rule"><b>Conteúdo</b><br><span class="muted">Problemas reais, processos, REFRIFLOW, aprendizados, aplicações e cases.</span></div><div class="rule"><b>Regra central</b><br><span class="muted">IA cria → Luiz aprova → sistema publica. Nada é publicado sem aprovação.</span></div></div></section>
 </main></div>
 <div class="modal" id="modal"><div class="card"><div class="top"><h2>Novo insight</h2><button class="btn ghost" onclick="closeModal()">Fechar</button></div><div class="form"><input id="iTitle" placeholder="Título / ideia"><textarea id="iBody" placeholder="Cole uma ideia, aprendizado, observação, link ou contexto..."></textarea><select id="iSource"><option>Trabalho</option><option>REFRIFLOW</option><option>Estudo</option><option>Notícia</option><option>Dia a dia</option><option>Outro</option></select><button class="btn" onclick="saveInsight()">Salvar no Inbox</button></div></div></div>
-<script>
-const pages={dashboard:["Dashboard","Visão geral do seu sistema de conteúdo."],insights:["Inbox de Insights","Capture ideias antes que elas se percam."],contents:["Conteúdos","Acompanhe a produção editorial."],approval:["Aprovação","Controle humano antes de qualquer publicação."],calendar:["Calendário","Planejamento editorial e agendamentos."],analytics:["Métricas","Resultados e aprendizado do agente."],rules:["Regras Editoriais","A identidade que orienta o agente."]};
-const labels={dashboard:"Dashboard",insights:"Insights",contents:"Conteúdos",approval:"Aprovação",calendar:"Calendário",analytics:"Métricas",rules:"Regras"};
-let data=JSON.parse(localStorage.getItem("lifeos-content")||"null")||{insights:[{id:1,title:"Autoridade sem entregar toda a execução",body:"Mostrar domínio do problema, explicar o que e por quê, usar cases e complexidade.",source:"Estudo",status:"INSIGHT"}],contents:[{id:1,title:"IA NÃO COMEÇA PELA FERRAMENTA. COMEÇA PELO PROBLEMA.",format:"Carrossel • 9 slides",status:"APROVADO",caption:"Problema → Processo → Dados → Solução → Tecnologia.",scheduled:null}]};
-function persist(){localStorage.setItem("lifeos-content",JSON.stringify(data));render()}
-function go(id){document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x.dataset.id===id));title.textContent=pages[id][0];desc.textContent=pages[id][1]}
-nav.innerHTML=Object.keys(pages).map((p,i)=>`<button data-id="${p}" class="${i===0?"active":""}" onclick="go('${p}')"><span class="dot"></span>${labels[p]}</button>`).join("");
-function badge(s){return `<span class="badge ${["APROVADO","PUBLICADO"].includes(s)?"ok":""}">${s}</span>`}
-function render(){
-metrics.innerHTML=[["Insights",data.insights.length],["Em produção",data.contents.filter(x=>!["APROVADO","PUBLICADO"].includes(x.status)).length],["Aguardando aprovação",data.contents.filter(x=>x.status==="AGUARDANDO_APROVACAO").length],["Aprovados",data.contents.filter(x=>x.status==="APROVADO").length]].map(x=>`<div class="card metric"><span class="muted">${x[0]}</span><b>${x[1]}</b></div>`).join("");
-queue.innerHTML=data.contents.length?data.contents.map(x=>`<div class="item"><div><b>${x.title}</b><div class="muted">${x.format}</div></div>${badge(x.status)}</div>`).join(""):'<div class="empty">Fila vazia</div>';
-insightList.innerHTML=data.insights.length?data.insights.map(x=>`<div class="item"><div><b>${x.title}</b><div class="muted">${x.source} • ${x.body}</div></div><div class="toolbar">${badge(x.status)}<button class="btn ghost" onclick="promote(${x.id})">Virar pauta</button></div></div>`).join(""):'<div class="empty">Nenhum insight capturado.</div>';
-contentList.innerHTML=data.contents.map(x=>`<div class="item"><div><b>${x.title}</b><div class="muted">${x.format} • ${x.caption||""}</div></div><div class="toolbar">${badge(x.status)}${x.status==="DRAFT"?`<button class="btn" onclick="requestApproval(${x.id})">Enviar p/ aprovação</button>`:""}</div></div>`).join("");
-const waiting=data.contents.filter(x=>x.status==="AGUARDANDO_APROVACAO");
-approvalList.innerHTML=waiting.length?waiting.map(x=>`<div class="item"><div><b>${x.title}</b><div class="muted">${x.format}</div></div><div class="toolbar"><button class="btn" onclick="approve(${x.id})">APROVAR</button><button class="btn danger" onclick="reject(${x.id})">ALTERAR</button></div></div>`).join(""):'<div class="empty">Nenhum conteúdo aguardando aprovação.</div>';
-calendarGrid.innerHTML=Array.from({length:14},(_,i)=>{let d=new Date();d.setDate(d.getDate()+i);let ev=data.contents.filter(x=>x.scheduled===d.toISOString().slice(0,10));return `<div class="day"><b>${d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</b>${ev.map(e=>`<div class="event">${e.title}</div>`).join("")}</div>`}).join("");
-}
-function openInsight(){modal.classList.add("open")}function closeModal(){modal.classList.remove("open")}
-function saveInsight(){if(!iTitle.value.trim())return alert("Digite um título.");data.insights.unshift({id:Date.now(),title:iTitle.value.trim(),body:iBody.value.trim(),source:iSource.value,status:"INSIGHT"});iTitle.value="";iBody.value="";closeModal();persist();go("insights")}
-function promote(id){let i=data.insights.find(x=>x.id===id);if(!i)return;i.status="PAUTA";data.contents.unshift({id:Date.now(),title:i.title,format:"A definir",status:"DRAFT",caption:i.body,scheduled:null});persist();go("contents")}
-function requestApproval(id){data.contents.find(x=>x.id===id).status="AGUARDANDO_APROVACAO";persist();go("approval")}
-function approve(id){data.contents.find(x=>x.id===id).status="APROVADO";persist()}
-function reject(id){data.contents.find(x=>x.id===id).status="DRAFT";persist();go("contents")}
-render();
-</script></body></html>
+<div class="modal" id="authModal"><div class="card"><div class="top"><div><h2>Conta LIFE OS</h2><div class="muted">Login seguro via Supabase Auth.</div></div><button class="btn ghost" onclick="closeAuth()">Fechar</button></div><div class="form"><input id="authEmail" type="email" placeholder="seu@email.com"><input id="authPassword" type="password" placeholder="Senha"><div class="toolbar"><button class="btn" onclick="signIn()">Entrar</button><button class="btn ghost" onclick="signUp()">Criar conta</button><button id="logoutBtn" class="btn danger" style="display:none" onclick="signOut()">Sair</button></div></div></div></div>
+<script src="config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js"></script>
+</body></html>
