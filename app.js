@@ -307,29 +307,35 @@ async function renderCarouselSlide(slide,total,title,feedback=""){
  const ctx=canvas.getContext("2d");
  const bg=ctx.createLinearGradient(0,0,1080,1440);bg.addColorStop(0,"#05080d");bg.addColorStop(.58,"#0a1625");bg.addColorStop(1,"#08111c");ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1440);
 
- // ambient blue light
  const glow=ctx.createRadialGradient(910,180,0,910,180,430);glow.addColorStop(0,"rgba(27,132,255,.30)");glow.addColorStop(.55,"rgba(13,76,145,.12)");glow.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=glow;ctx.fillRect(430,0,650,650);
 
  const tune=visualTuningFromFeedback(feedback);
 
- // top brand
+ // Brand fixa no topo
  ctx.fillStyle="#1788ff";ctx.fillRect(72,74,74,8);
  ctx.fillStyle="#f4f8ff";ctx.font="800 27px Arial";ctx.fillText("LUIZ ANDRADE",72,126);
  ctx.fillStyle=tune.moreContrast?"#a9b9cc":"#8091a6";ctx.font="19px Arial";ctx.fillText("IA • AUTOMAÇÃO • GESTÃO",72,160);
- let lines=[...(slide.lines||[])]; const isCover=slide.number===1;
+
+ let lines=[...(slide.lines||[])];
+ const isCover=slide.number===1;
  if(tune.lessText&&!isCover&&lines.length>5) lines=lines.slice(0,5);
- let y=isCover?(tune.moreBreathing?390:360):275;
 
- // visual accent card
+ // Área visual padronizada dos slides
+ const cardX=68, cardY=225, cardW=944, cardH=860;
  if(!isCover){
-   ctx.fillStyle="rgba(255,255,255,.025)";ctx.strokeStyle="#1f334a";ctx.lineWidth=1;
-   ctx.beginPath();ctx.roundRect(68,225,944,860,26);ctx.fill();ctx.stroke();
- }
- if(isCover){
-   ctx.fillStyle="#6cb8ff";ctx.font="800 20px Arial";ctx.fillText("PONTO DE VISTA",74,tune.moreBreathing?300:300);
-   ctx.fillStyle="rgba(23,136,255,.08)";ctx.strokeStyle="#1f4a76";ctx.beginPath();ctx.roundRect(62,tune.moreBreathing?355:335,956,tune.moreBreathing?720:760,28);ctx.fill();ctx.stroke();
+   ctx.fillStyle="rgba(255,255,255,.025)";
+   ctx.strokeStyle="#1f334a";ctx.lineWidth=1;
+   ctx.beginPath();ctx.roundRect(cardX,cardY,cardW,cardH,26);ctx.fill();ctx.stroke();
  }
 
+ if(isCover){
+   ctx.fillStyle="#6cb8ff";ctx.font="800 20px Arial";ctx.fillText("PONTO DE VISTA",74,300);
+   ctx.fillStyle="rgba(23,136,255,.08)";ctx.strokeStyle="#1f4a76";
+   ctx.beginPath();ctx.roundRect(62,355,956,720,28);ctx.fill();ctx.stroke();
+ }
+
+ // Monta os blocos primeiro para calcular a altura real.
+ const blocks=[];
  for(let i=0;i<lines.length;i++){
    const raw=lines[i];
    const bullet=/^-\s+/.test(raw);
@@ -337,24 +343,58 @@ async function renderCarouselSlide(slide,total,title,feedback=""){
    const isHeading=i===0 || (isCover&&i<=1) || (!bullet&&short&&i<2);
 
    if(bullet){
-     ctx.fillStyle="rgba(255,255,255,.035)";ctx.strokeStyle="#223b55";ctx.beginPath();ctx.roundRect(96,y-34,856,72,16);ctx.fill();ctx.stroke();
-     ctx.fillStyle="#1788ff";ctx.beginPath();ctx.arc(125,y+2,7,0,Math.PI*2);ctx.fill();
-     ctx.fillStyle=tune.moreContrast?"#eef5ff":"#dce7f5";ctx.font="500 30px Arial";
+     ctx.font="500 30px Arial";
      const wrapped=wrapCanvasText(ctx,raw.replace(/^-\s+/,""),775);
-     for(const w of wrapped){ctx.fillText(w,155,y+10);y+=42}
-     y+=26;
+     const height=Math.max(72,wrapped.length*42+22);
+     blocks.push({type:"bullet",wrapped,height});
    } else {
      ctx.font=isHeading?(isCover?"900 72px Arial":"850 58px Arial"):"400 32px Arial";
-     ctx.fillStyle=isHeading?"#ffffff":(tune.moreContrast?"#d8e3ef":"#bac9da");
      const max=isHeading?(tune.moreBreathing&&isCover?800:850):(tune.consistent?790:825);
      const wrapped=wrapCanvasText(ctx,raw,max);
-     for(const w of wrapped){ctx.fillText(w,isCover?92:104,y);y+=isHeading?(isCover?82:68):46}
-     y+=isHeading?30:18;
+     const lineH=isHeading?(isCover?82:68):46;
+     const gap=isHeading?30:18;
+     blocks.push({type:"text",wrapped,isHeading,lineH,gap,height:wrapped.length*lineH+gap});
    }
-   if(y>1145)break;
  }
 
- // footer
+ const totalHeight=blocks.reduce((sum,b)=>sum+b.height,0);
+
+ // Capa mantém composição própria; slides internos centralizam verticalmente.
+ let y;
+ if(isCover){
+   y=tune.moreBreathing?405:385;
+ }else{
+   const innerTop=cardY+70;
+   const innerBottom=cardY+cardH-70;
+   const innerH=innerBottom-innerTop;
+   y=innerTop+Math.max(0,(innerH-totalHeight)/2);
+ }
+
+ for(const b of blocks){
+   if(b.type==="bullet"){
+     const boxY=y;
+     const boxH=b.height;
+     ctx.fillStyle="rgba(255,255,255,.035)";ctx.strokeStyle="#223b55";
+     ctx.beginPath();ctx.roundRect(96,boxY,856,boxH,16);ctx.fill();ctx.stroke();
+
+     ctx.fillStyle="#1788ff";ctx.beginPath();ctx.arc(125,boxY+boxH/2,7,0,Math.PI*2);ctx.fill();
+
+     ctx.fillStyle=tune.moreContrast?"#eef5ff":"#dce7f5";
+     ctx.font="500 30px Arial";
+     let ty=boxY+36;
+     for(const w of b.wrapped){ctx.fillText(w,155,ty);ty+=42}
+     y+=boxH+18;
+   }else{
+     ctx.font=b.isHeading?(isCover?"900 72px Arial":"850 58px Arial"):"400 32px Arial";
+     ctx.fillStyle=b.isHeading?"#ffffff":(tune.moreContrast?"#d8e3ef":"#bac9da");
+     const x=isCover?92:104;
+     let ty=y+b.lineH-10;
+     for(const w of b.wrapped){ctx.fillText(w,x,ty);ty+=b.lineH}
+     y+=b.height;
+   }
+ }
+
+ // Rodapé fixo
  ctx.strokeStyle="#1b2d40";ctx.beginPath();ctx.moveTo(72,1270);ctx.lineTo(1008,1270);ctx.stroke();
  ctx.fillStyle="#1788ff";ctx.font="800 21px Arial";ctx.fillText(String(slide.number).padStart(2,"0"),72,1328);
  ctx.fillStyle="#5f7084";ctx.font="19px Arial";ctx.fillText("/ "+String(total).padStart(2,"0"),105,1328);
@@ -374,13 +414,13 @@ async function autoGenerateCarouselMedia(id,{silent=false,force=false}={}){
    for(let i=0;i<slides.length;i++){
      const blob=await renderCarouselSlide(slides[i],slides.length,c.title,c.approval_notes||"");
      if(!blob)throw new Error("Falha ao gerar slide "+(i+1));
-     const path=`${currentUser.id}/${c.id}/visual_v5_3x4_slide_${String(i+1).padStart(2,"0")}.jpg`;
+     const path=`${currentUser.id}/${c.id}/visual_v6_centered_slide_${String(i+1).padStart(2,"0")}.jpg`;
      const {error}=await client.storage.from("instagram-posts").upload(path,blob,{upsert:true,contentType:"image/jpeg"});
      if(error)throw error;
      const {data:pub}=client.storage.from("instagram-posts").getPublicUrl(path);
      urls.push(pub.publicUrl);
    }
-   const {data:r,error}=await client.from("contents").update({media_urls:urls,publish_error:null,template_key:"luiz_andrade_v5_3x4",visual_approved:false,visual_approved_at:null}).eq("id",c.id).select().single();
+   const {data:r,error}=await client.from("contents").update({media_urls:urls,publish_error:null,template_key:"luiz_andrade_v6_centered",visual_approved:false,visual_approved_at:null}).eq("id",c.id).select().single();
    if(error)throw error;
    Object.assign(c,r);saveLocal();
    if(currentContentId===c.id){currentMediaUrls=urls;$("eMediaStatus").textContent=`${urls.length} mídia(s) gerada(s) automaticamente.`}
@@ -392,7 +432,7 @@ async function autoGenerateCarouselMedia(id,{silent=false,force=false}={}){
  }
 }
 async function ensureApprovedMedia(){
- const pending=data.contents.filter(c=>c.text_approved&&c.format==="Carrossel"&&!c.visual_approved&&(["PENDING_VISUAL_APPROVAL","NEEDS_CHANGES"].includes(c.status))&&(!Array.isArray(c.media_urls)||c.media_urls.length<2||!(c.media_urls[0]||"").includes("visual_v5_3x4_slide_")));
+ const pending=data.contents.filter(c=>c.text_approved&&c.format==="Carrossel"&&!c.visual_approved&&(["PENDING_VISUAL_APPROVAL","NEEDS_CHANGES"].includes(c.status))&&(!Array.isArray(c.media_urls)||c.media_urls.length<2||!(c.media_urls[0]||"").includes("visual_v6_centered_slide_")));
  for(const c of pending)await autoGenerateCarouselMedia(c.id,{silent:true,force:true});
  render();
 }
