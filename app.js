@@ -97,13 +97,40 @@ function badge(s){return `<span class="badge ${["APROVADO","PUBLICADO"].includes
 function go(id){document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x.dataset.id===id));$("title").textContent=pages[id][0];$("desc").textContent=pages[id][1]}
 $("nav").innerHTML=Object.keys(pages).map((p,i)=>`<button data-id="${p}" class="${i===0?"active":""}" onclick="go('${p}')"><span class="dot"></span>${labels[p]}</button>`).join("");
 
+function visualStage(c){
+ const t=c.text_approved?'<span class="stage ok">✓ TEXTO</span>':'<span class="stage pending">TEXTO PENDENTE</span>';
+ const v=c.visual_approved?'<span class="stage ok">✓ VISUAL</span>':'<span class="stage pending">VISUAL PENDENTE</span>';
+ return t+v;
+}
+function approvalCard(c){
+ const urls=Array.isArray(c.media_urls)?c.media_urls:[];
+ const first=urls[0]||"";
+ const thumbs=urls.map((u,i)=>`<div class="slide-thumb ${i===0?"active":""}" onclick="showApprovalSlide('${c.id}',${i},this)"><img src="${esc(u)}" alt="Slide ${i+1}"></div>`).join("");
+ const textAction=!c.text_approved?`<button class="btn" onclick="approveText('${c.id}')">Aprovar texto</button>`:"";
+ const visualActions=c.text_approved&&urls.length? `
+   <button class="btn ghost" onclick="regenerateVisual('${c.id}')">Regenerar visual</button>
+   <button class="btn" onclick="approveVisual('${c.id}')">Aprovar slides</button>
+   <button class="btn danger" onclick="requestVisualChanges('${c.id}')">Solicitar ajuste</button>`:"";
+ const publish=c.text_approved&&c.visual_approved&&c.status==="APROVADO"?`<button class="btn" onclick="publishInstagram('${c.id}')">Publicar no Instagram</button>`:"";
+ return `<div class="approval-card">
+   <div class="approval-head"><div><b>${esc(c.title)}</b><div class="muted">${esc(c.format||"")}</div><div class="approval-stages">${visualStage(c)}</div></div>${badge(c.status)}</div>
+   ${urls.length?`<div class="slide-preview"><div class="slide-hero"><img id="approvalHero_${c.id}" src="${esc(first)}" alt="Preview"></div><div class="slide-thumbs">${thumbs}</div></div>`:'<div class="empty">As mídias serão geradas automaticamente após a aprovação do texto.</div>'}
+   <div class="approval-notes"><textarea id="approvalNote_${c.id}" placeholder="O que precisa mudar? Ex.: mais parecido com o Post #001, menos texto, mais contraste...">${esc(c.approval_notes||"")}</textarea></div>
+   <div class="toolbar" style="margin-top:12px"><button class="btn ghost" onclick="openEditor('${c.id}')">Revisar conteúdo</button>${textAction}${visualActions}${publish}</div>
+ </div>`;
+}
 function render(){
- $("metrics").innerHTML=[["Insights",data.insights.length],["Em produção",data.contents.filter(x=>!["APROVADO","PUBLICADO"].includes(x.status)).length],["Aguardando aprovação",data.contents.filter(x=>x.status==="AGUARDANDO_APROVACAO").length],["Aprovados",data.contents.filter(x=>x.status==="APROVADO").length]].map(x=>`<div class="card metric"><span class="muted">${x[0]}</span><b>${x[1]}</b></div>`).join("");
- $("queue").innerHTML=data.contents.length?data.contents.map(x=>`<div class="item"><div><b>${esc(x.title)}</b><div class="muted">${esc(x.format||"")}</div></div>${badge(x.status)}</div>`).join(""):'<div class="empty">Fila vazia</div>';
+ $("metrics").innerHTML=[
+   ["Insights",data.insights.length],
+   ["Em produção",data.contents.filter(x=>!["APROVADO","PUBLICADO"].includes(x.status)).length],
+   ["Aguardando aprovação",data.contents.filter(x=>["AGUARDANDO_APROVACAO","PENDING_VISUAL_APPROVAL","NEEDS_CHANGES"].includes(x.status)).length],
+   ["Prontos para publicar",data.contents.filter(x=>x.status==="APROVADO"&&x.text_approved&&x.visual_approved).length]
+ ].map(x=>`<div class="card metric"><span class="muted">${x[0]}</span><b>${x[1]}</b></div>`).join("");
+ $("queue").innerHTML=data.contents.length?data.contents.map(x=>`<div class="item"><div><b>${esc(x.title)}</b><div class="muted">${esc(x.format||"")}</div><div class="approval-stages">${visualStage(x)}</div></div>${badge(x.status)}</div>`).join(""):'<div class="empty">Fila vazia</div>';
  $("insightList").innerHTML=data.insights.length?data.insights.map(x=>`<div class="item"><div><b>${esc(x.title)}</b><div class="muted">${esc(x.source||"Outro")} • ${esc(x.body||"")}</div></div><div class="toolbar">${badge(x.status)}${x.status==="INSIGHT"?`<button class="btn ghost" onclick="promote('${x.id}')">Virar pauta</button>`:""}</div></div>`).join(""):'<div class="empty">Nenhum insight capturado.</div>';
- $("contentList").innerHTML=data.contents.length?data.contents.map(x=>`<div class="item"><div><b>${esc(x.title)}</b><div class="muted">${esc(x.format||"A definir")} • ${esc(x.caption||"")}</div></div><div class="toolbar">${badge(x.status)}<button class="btn ghost" onclick="openEditor('${x.id}')">Abrir editor</button>${x.status==="DRAFT"?`<button class="btn" onclick="requestApproval('${x.id}')">Enviar p/ aprovação</button>`:""}</div></div>`).join(""):'<div class="empty">Nenhum conteúdo.</div>';
- const waiting=data.contents.filter(x=>x.status==="AGUARDANDO_APROVACAO");
- $("approvalList").innerHTML=waiting.length?waiting.map(x=>`<div class="item"><div><b>${esc(x.title)}</b><div class="muted">${esc(x.format||"")}</div></div><div class="toolbar"><button class="btn ghost" onclick="openEditor('${x.id}')">Revisar</button><button class="btn" onclick="approve('${x.id}')">APROVAR</button><button class="btn danger" onclick="reject('${x.id}')">ALTERAR</button></div></div>`).join(""):'<div class="empty">Nenhum conteúdo aguardando aprovação.</div>';
+ $("contentList").innerHTML=data.contents.length?data.contents.map(x=>`<div class="item"><div><b>${esc(x.title)}</b><div class="muted">${esc(x.format||"A definir")} • ${Array.isArray(x.media_urls)?x.media_urls.length:0} mídia(s)</div><div class="approval-stages">${visualStage(x)}</div></div><div class="toolbar">${badge(x.status)}<button class="btn ghost" onclick="openEditor('${x.id}')">Abrir editor</button><button class="btn ghost" onclick="go('approval')">Ver aprovação</button>${x.status==="DRAFT"?`<button class="btn" onclick="requestApproval('${x.id}')">Enviar p/ aprovação</button>`:""}</div></div>`).join(""):'<div class="empty">Nenhum conteúdo.</div>';
+ const waiting=data.contents.filter(x=>!["PUBLICADO","ANALISADO","DESCARTADO"].includes(x.status));
+ $("approvalList").innerHTML=waiting.length?waiting.map(approvalCard).join(""):'<div class="empty">Nenhum conteúdo aguardando aprovação.</div>';
  $("calendarGrid").innerHTML=Array.from({length:14},(_,i)=>{let d=new Date();d.setDate(d.getDate()+i);let key=d.toISOString().slice(0,10);let ev=data.contents.filter(x=>(x.scheduled_at||"").slice(0,10)===key);return `<div class="day"><b>${d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</b>${ev.map(e=>`<div class="event">${esc(e.title)}</div>`).join("")}</div>`}).join("");
 }
 
@@ -183,7 +210,41 @@ async function promote(id){
 }
 async function setStatus(id,status){const c=data.contents.find(x=>String(x.id)===String(id));if(!c)return;const {data:r,error}=await client.from("contents").update({status}).eq("id",id).select().single();if(error)return alert(error.message);Object.assign(c,r);saveLocal()}
 async function requestApproval(id){await setStatus(id,"AGUARDANDO_APROVACAO");go("approval")}
-async function approve(id){await setStatus(id,"APROVADO");await autoGenerateCarouselMedia(id,{silent:true});render()}
+async function approveText(id){
+ const c=data.contents.find(x=>String(x.id)===String(id)); if(!c)return;
+ const {data:r,error}=await client.from("contents").update({text_approved:true,text_approved_at:new Date().toISOString(),visual_approved:false,visual_approved_at:null,status:"PENDING_VISUAL_APPROVAL"}).eq("id",id).select().single();
+ if(error)return alert(error.message);Object.assign(c,r);saveLocal();
+ await autoGenerateCarouselMedia(id,{silent:true,force:true});
+ await refreshRemote();go("approval");
+}
+async function approveVisual(id){
+ const c=data.contents.find(x=>String(x.id)===String(id)); if(!c||!c.text_approved)return alert("Aprove o texto primeiro.");
+ if(!Array.isArray(c.media_urls)||c.media_urls.length<2)return alert("Ainda não existem slides para aprovar.");
+ const {data:r,error}=await client.from("contents").update({visual_approved:true,visual_approved_at:new Date().toISOString(),status:"APROVADO",approval_notes:""}).eq("id",id).select().single();
+ if(error)return alert(error.message);Object.assign(c,r);saveLocal();go("approval");
+}
+async function requestVisualChanges(id){
+ const note=$("approvalNote_"+id)?.value.trim()||"Ajustar o visual para ficar mais próximo do template aprovado.";
+ const c=data.contents.find(x=>String(x.id)===String(id)); if(!c)return;
+ const {data:r,error}=await client.from("contents").update({visual_approved:false,visual_approved_at:null,status:"NEEDS_CHANGES",approval_notes:note}).eq("id",id).select().single();
+ if(error)return alert(error.message);Object.assign(c,r);saveLocal();
+ await regenerateVisual(id,true);
+}
+async function regenerateVisual(id,afterFeedback=false){
+ const ok=await autoGenerateCarouselMedia(id,{silent:true,force:true});
+ if(!ok)return;
+ const c=data.contents.find(x=>String(x.id)===String(id));
+ const {data:r,error}=await client.from("contents").update({visual_approved:false,visual_approved_at:null,status:"PENDING_VISUAL_APPROVAL"}).eq("id",id).select().single();
+ if(!error&&c)Object.assign(c,r);
+ saveLocal();if(!afterFeedback)alert("Novo visual gerado. Revise os slides abaixo.");
+ go("approval");
+}
+function showApprovalSlide(id,index,el){
+ const c=data.contents.find(x=>String(x.id)===String(id)); if(!c)return;
+ const url=(c.media_urls||[])[index]; if(!url)return;
+ const hero=$("approvalHero_"+id);if(hero)hero.src=url;
+ if(el){el.parentElement.querySelectorAll(".slide-thumb").forEach(x=>x.classList.remove("active"));el.classList.add("active")}
+}
 async function reject(id){await setStatus(id,"DRAFT");go("contents")}
 
 
@@ -203,36 +264,52 @@ function wrapCanvasText(ctx,text,maxWidth){
  }
  if(line)lines.push(line); return lines;
 }
-async function renderCarouselSlide(slide,total,title){
- const canvas=document.createElement("canvas"); canvas.width=1080; canvas.height=1350;
- const ctx=canvas.getContext("2d");
- ctx.fillStyle="#070b12";ctx.fillRect(0,0,1080,1350);
- const g=ctx.createLinearGradient(0,0,1080,1350);g.addColorStop(0,"#0a1422");g.addColorStop(1,"#07101b");ctx.fillStyle=g;ctx.fillRect(0,0,1080,1350);
- ctx.fillStyle="#1687ff";ctx.fillRect(78,92,8,86);
- ctx.fillStyle="#eef5ff";ctx.font="700 30px Arial";ctx.fillText("LUIZ ANDRADE",110,125);
- ctx.fillStyle="#8493a7";ctx.font="22px Arial";ctx.fillText("IA • AUTOMAÇÃO • GESTÃO",110,160);
- let y=285;
- const lines=slide.lines||[];
- for(let i=0;i<lines.length;i++){
-   const raw=lines[i];
-   const bullet=/^-\s+/.test(raw);
-   const isHeading=i===0 || raw.length<55&&!bullet;
-   ctx.font=isHeading?"800 58px Arial":"400 34px Arial";
-   ctx.fillStyle=isHeading?"#ffffff":"#cbd8e8";
-   const text=bullet?"• "+raw.replace(/^-\s+/,""):raw;
-   const wrapped=wrapCanvasText(ctx,text,880);
-   for(const w of wrapped){ctx.fillText(w,100,y);y+=isHeading?72:48}
-   y+=isHeading?28:16;
-   if(y>1110)break;
- }
- ctx.fillStyle="#1687ff";ctx.font="700 24px Arial";ctx.fillText(String(slide.number).padStart(2,"0")+" / "+String(total).padStart(2,"0"),100,1240);
- ctx.fillStyle="#8493a7";ctx.font="20px Arial";ctx.fillText("LIFE OS CONTENT AGENT",100,1288);
- return await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.92));
+function roundRect(ctx,x,y,w,h,r,fill,stroke){
+ ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}
 }
-async function autoGenerateCarouselMedia(id,{silent=false}={}){
+async function renderCarouselSlide(slide,total,title){
+ const canvas=document.createElement("canvas");canvas.width=1080;canvas.height=1350;
+ const ctx=canvas.getContext("2d");
+ const bg=ctx.createLinearGradient(0,0,1080,1350);bg.addColorStop(0,"#060b12");bg.addColorStop(.55,"#0a1524");bg.addColorStop(1,"#07101a");ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1350);
+ const glow=ctx.createRadialGradient(910,180,0,910,180,380);glow.addColorStop(0,"rgba(22,135,255,.24)");glow.addColorStop(1,"rgba(22,135,255,0)");ctx.fillStyle=glow;ctx.fillRect(520,0,560,560);
+ ctx.fillStyle="#1687ff";ctx.fillRect(72,78,58,7);
+ ctx.fillStyle="#ffffff";ctx.font="700 25px Arial";ctx.fillText("LUIZ ANDRADE",72,128);
+ ctx.fillStyle="#8190a4";ctx.font="18px Arial";ctx.fillText("IA  •  AUTOMAÇÃO  •  GESTÃO",72,160);
+ roundRect(ctx,850,91,150,45,23,"rgba(22,135,255,.12)","#245a8c");ctx.fillStyle="#6bb5ff";ctx.font="700 17px Arial";ctx.fillText("LIFE OS",894,120);
+
+ const lines=slide.lines||[]; const isCover=slide.number===1;
+ let y=isCover?330:270;
+ if(isCover){
+   ctx.fillStyle="#6db8ff";ctx.font="700 19px Arial";ctx.fillText("IDEIA CENTRAL",74,280);
+ }
+ for(let i=0;i<lines.length;i++){
+   const raw=lines[i];const bullet=/^-\s+/.test(raw);
+   const isHeading=i===0||(isCover&&i<2)||(!bullet&&raw.length<54&&i<2);
+   if(bullet){
+     roundRect(ctx,74,y-32,932,62,14,"rgba(255,255,255,.035)","#1d3046");
+     ctx.fillStyle="#1687ff";ctx.beginPath();ctx.arc(100,y-2,6,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle="#dce8f7";ctx.font="400 28px Arial";
+     const wrapped=wrapCanvasText(ctx,raw.replace(/^-\s+/,""),840);
+     for(const w of wrapped){ctx.fillText(w,126,y+7);y+=39} y+=23;
+   }else{
+     ctx.font=isHeading?(isCover?"800 67px Arial":"800 54px Arial"):"400 31px Arial";
+     ctx.fillStyle=isHeading?"#ffffff":"#b8c7d9";
+     const max=isHeading?890:860;const wrapped=wrapCanvasText(ctx,raw,max);
+     for(const w of wrapped){ctx.fillText(w,74,y);y+=isHeading?(isCover?78:65):43}
+     y+=isHeading?24:18;
+   }
+   if(y>1090)break;
+ }
+ ctx.strokeStyle="#1d2b3e";ctx.beginPath();ctx.moveTo(72,1184);ctx.lineTo(1008,1184);ctx.stroke();
+ ctx.fillStyle="#1687ff";ctx.font="700 20px Arial";ctx.fillText(String(slide.number).padStart(2,"0"),72,1238);
+ ctx.fillStyle="#5b6d82";ctx.font="18px Arial";ctx.fillText("/ "+String(total).padStart(2,"0"),104,1238);
+ ctx.fillStyle="#8a9aae";ctx.font="18px Arial";ctx.textAlign="right";ctx.fillText("TECNOLOGIA APLICADA A PROBLEMAS REAIS",1008,1238);ctx.textAlign="left";
+ return await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.94));
+}
+async function autoGenerateCarouselMedia(id,{silent=false,force=false}={}){
  const c=data.contents.find(x=>String(x.id)===String(id)); if(!c||!currentUser)return false;
  if(c.format!=="Carrossel")return false;
- if(Array.isArray(c.media_urls)&&c.media_urls.length>=2)return true;
+ if(!force&&Array.isArray(c.media_urls)&&c.media_urls.length>=2)return true;
  const slides=splitCarouselSlides(c.script||"");
  if(slides.length<2){if(!silent)alert("O roteiro precisa estar dividido em Slide 1, Slide 2...");return false}
  try{
@@ -241,13 +318,13 @@ async function autoGenerateCarouselMedia(id,{silent=false}={}){
    for(let i=0;i<slides.length;i++){
      const blob=await renderCarouselSlide(slides[i],slides.length,c.title);
      if(!blob)throw new Error("Falha ao gerar slide "+(i+1));
-     const path=`${currentUser.id}/${c.id}/auto_slide_${String(i+1).padStart(2,"0")}.jpg`;
+     const path=`${currentUser.id}/${c.id}/visual_v2_slide_${String(i+1).padStart(2,"0")}.jpg`;
      const {error}=await client.storage.from("instagram-posts").upload(path,blob,{upsert:true,contentType:"image/jpeg"});
      if(error)throw error;
      const {data:pub}=client.storage.from("instagram-posts").getPublicUrl(path);
      urls.push(pub.publicUrl);
    }
-   const {data:r,error}=await client.from("contents").update({media_urls:urls,publish_error:null}).eq("id",c.id).select().single();
+   const {data:r,error}=await client.from("contents").update({media_urls:urls,publish_error:null,template_key:"luiz_andrade_v2",visual_approved:false,visual_approved_at:null}).eq("id",c.id).select().single();
    if(error)throw error;
    Object.assign(c,r);saveLocal();
    if(currentContentId===c.id){currentMediaUrls=urls;$("eMediaStatus").textContent=`${urls.length} mídia(s) gerada(s) automaticamente.`}
@@ -259,8 +336,8 @@ async function autoGenerateCarouselMedia(id,{silent=false}={}){
  }
 }
 async function ensureApprovedMedia(){
- const pending=data.contents.filter(c=>c.status==="APROVADO"&&c.format==="Carrossel"&&(!Array.isArray(c.media_urls)||c.media_urls.length<2));
- for(const c of pending)await autoGenerateCarouselMedia(c.id,{silent:true});
+ const pending=data.contents.filter(c=>c.text_approved&&c.format==="Carrossel"&&!c.visual_approved&&(["PENDING_VISUAL_APPROVAL","NEEDS_CHANGES"].includes(c.status))&&(!Array.isArray(c.media_urls)||c.media_urls.length<2||!(c.media_urls[0]||"").includes("visual_v2_slide_")));
+ for(const c of pending)await autoGenerateCarouselMedia(c.id,{silent:true,force:true});
  render();
 }
 
@@ -322,7 +399,8 @@ async function connectInstagram(){
 async function publishInstagram(id){
  const c=data.contents.find(x=>String(x.id)===String(id)); if(!c)return;
  const qty=Array.isArray(c.media_urls)?c.media_urls.length:0;
- if(qty<2)return alert("Envie pelo menos 2 imagens no editor antes de publicar o carrossel.");
+ if(!c.text_approved||!c.visual_approved||c.status!=="APROVADO")return alert("A publicação só é liberada após aprovação do texto e dos slides.");
+ if(qty<2)return alert("Ainda não existem mídias suficientes para publicar o carrossel.");
  if(!confirm(`Publicar agora "${c.title}" no Instagram com ${qty} imagens? Esta ação tornará o post público.`))return;
  try{
    await setStatus(id,"APROVADO");
