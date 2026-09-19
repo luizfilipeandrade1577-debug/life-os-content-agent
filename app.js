@@ -224,11 +224,28 @@ async function approveVisual(id){
  if(error)return alert(error.message);Object.assign(c,r);saveLocal();go("approval");
 }
 async function requestVisualChanges(id){
- const note=$("approvalNote_"+id)?.value.trim()||"Ajustar o visual para ficar mais próximo do template aprovado.";
+ const note=$("approvalNote_"+id)?.value.trim();
+ if(!note)return alert("Descreva o ajuste que você quer antes de solicitar a regeneração.");
  const c=data.contents.find(x=>String(x.id)===String(id)); if(!c)return;
- const {data:r,error}=await client.from("contents").update({visual_approved:false,visual_approved_at:null,status:"NEEDS_CHANGES",approval_notes:note}).eq("id",id).select().single();
- if(error)return alert(error.message);Object.assign(c,r);saveLocal();
- await regenerateVisual(id,true);
+ const {data:r,error}=await client.from("contents").update({
+   visual_approved:false,
+   visual_approved_at:null,
+   status:"NEEDS_CHANGES",
+   approval_notes:note
+ }).eq("id",id).select().single();
+ if(error)return alert(error.message);
+ Object.assign(c,r);saveLocal();
+ const ok=await autoGenerateCarouselMedia(id,{silent:true,force:true});
+ if(!ok)return alert("O feedback foi salvo, mas não consegui regenerar o visual.");
+ const {data:r2,error:e2}=await client.from("contents").update({
+   status:"PENDING_VISUAL_APPROVAL",
+   visual_approved:false,
+   visual_approved_at:null
+ }).eq("id",id).select().single();
+ if(!e2&&r2)Object.assign(c,r2);
+ saveLocal();
+ alert("Ajuste aplicado e novo visual gerado. Revise os slides.");
+ go("approval");
 }
 async function regenerateVisual(id,afterFeedback=false){
  const ok=await autoGenerateCarouselMedia(id,{silent:true,force:true});
@@ -236,7 +253,7 @@ async function regenerateVisual(id,afterFeedback=false){
  const c=data.contents.find(x=>String(x.id)===String(id));
  const {data:r,error}=await client.from("contents").update({visual_approved:false,visual_approved_at:null,status:"PENDING_VISUAL_APPROVAL"}).eq("id",id).select().single();
  if(!error&&c)Object.assign(c,r);
- saveLocal();if(!afterFeedback)alert("Novo visual gerado. Revise os slides abaixo.");
+ saveLocal();if(!afterFeedback)alert("Novo visual gerado usando o feedback salvo. Revise os slides abaixo.");
  go("approval");
 }
 function showApprovalSlide(id,index,el){
@@ -267,7 +284,17 @@ function wrapCanvasText(ctx,text,maxWidth){
 function roundRect(ctx,x,y,w,h,r,fill,stroke){
  ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}
 }
-async function renderCarouselSlide(slide,total,title){
+function visualTuningFromFeedback(feedback=""){
+ const f=String(feedback).toLowerCase();
+ return {
+   moreBreathing:/respiro|espaço|espacamento|espaçamento/.test(f),
+   lessText:/menos texto|reduzir.*texto|mais limpo|mais legível|mais legivel/.test(f),
+   moreContrast:/contraste|mais legível|mais legivel/.test(f),
+   morePremium:/premium|executivo|sofisticado/.test(f),
+   consistent:/consist|padroniz|blocos internos/.test(f)
+ };
+}
+async function renderCarouselSlide(slide,total,title,feedback=""){
  const canvas=document.createElement("canvas");canvas.width=1080;canvas.height=1350;
  const ctx=canvas.getContext("2d");
  const bg=ctx.createLinearGradient(0,0,1080,1350);bg.addColorStop(0,"#05080d");bg.addColorStop(.58,"#0a1625");bg.addColorStop(1,"#08111c");ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1350);
@@ -278,10 +305,12 @@ async function renderCarouselSlide(slide,total,title){
  // top brand
  ctx.fillStyle="#1788ff";ctx.fillRect(72,74,74,8);
  ctx.fillStyle="#f4f8ff";ctx.font="800 27px Arial";ctx.fillText("LUIZ ANDRADE",72,126);
- ctx.fillStyle="#8091a6";ctx.font="19px Arial";ctx.fillText("IA • AUTOMAÇÃO • GESTÃO",72,160);
+ ctx.fillStyle=tune.moreContrast?"#a9b9cc":"#8091a6";ctx.font="19px Arial";ctx.fillText("IA • AUTOMAÇÃO • GESTÃO",72,160);
 
- const lines=slide.lines||[]; const isCover=slide.number===1;
- let y=isCover?360:275;
+ const tune=visualTuningFromFeedback(feedback);
+ let lines=[...(slide.lines||[])]; const isCover=slide.number===1;
+ if(tune.lessText&&!isCover&&lines.length>5) lines=lines.slice(0,5);
+ let y=isCover?(tune.moreBreathing?390:360):275;
 
  // visual accent card
  if(!isCover){
@@ -289,8 +318,8 @@ async function renderCarouselSlide(slide,total,title){
    ctx.beginPath();ctx.roundRect(68,225,944,790,26);ctx.fill();ctx.stroke();
  }
  if(isCover){
-   ctx.fillStyle="#6cb8ff";ctx.font="800 20px Arial";ctx.fillText("PONTO DE VISTA",74,300);
-   ctx.fillStyle="rgba(23,136,255,.08)";ctx.strokeStyle="#1f4a76";ctx.beginPath();ctx.roundRect(62,325,956,690,28);ctx.fill();ctx.stroke();
+   ctx.fillStyle="#6cb8ff";ctx.font="800 20px Arial";ctx.fillText("PONTO DE VISTA",74,tune.moreBreathing?300:300);
+   ctx.fillStyle="rgba(23,136,255,.08)";ctx.strokeStyle="#1f4a76";ctx.beginPath();ctx.roundRect(62,tune.moreBreathing?345:325,956,tune.moreBreathing?650:690,28);ctx.fill();ctx.stroke();
  }
 
  for(let i=0;i<lines.length;i++){
@@ -302,14 +331,14 @@ async function renderCarouselSlide(slide,total,title){
    if(bullet){
      ctx.fillStyle="rgba(255,255,255,.035)";ctx.strokeStyle="#223b55";ctx.beginPath();ctx.roundRect(96,y-34,856,72,16);ctx.fill();ctx.stroke();
      ctx.fillStyle="#1788ff";ctx.beginPath();ctx.arc(125,y+2,7,0,Math.PI*2);ctx.fill();
-     ctx.fillStyle="#dce7f5";ctx.font="500 30px Arial";
+     ctx.fillStyle=tune.moreContrast?"#eef5ff":"#dce7f5";ctx.font="500 30px Arial";
      const wrapped=wrapCanvasText(ctx,raw.replace(/^-\s+/,""),775);
      for(const w of wrapped){ctx.fillText(w,155,y+10);y+=42}
      y+=26;
    } else {
      ctx.font=isHeading?(isCover?"900 72px Arial":"850 58px Arial"):"400 32px Arial";
-     ctx.fillStyle=isHeading?"#ffffff":"#bac9da";
-     const max=isHeading?850:825;
+     ctx.fillStyle=isHeading?"#ffffff":(tune.moreContrast?"#d8e3ef":"#bac9da");
+     const max=isHeading?(tune.moreBreathing&&isCover?800:850):(tune.consistent?790:825);
      const wrapped=wrapCanvasText(ctx,raw,max);
      for(const w of wrapped){ctx.fillText(w,isCover?92:104,y);y+=isHeading?(isCover?82:68):46}
      y+=isHeading?30:18;
@@ -335,15 +364,15 @@ async function autoGenerateCarouselMedia(id,{silent=false,force=false}={}){
    if(!silent)alert("O LIFE OS vai gerar e enviar as mídias automaticamente.");
    const urls=[];
    for(let i=0;i<slides.length;i++){
-     const blob=await renderCarouselSlide(slides[i],slides.length,c.title);
+     const blob=await renderCarouselSlide(slides[i],slides.length,c.title,c.approval_notes||"");
      if(!blob)throw new Error("Falha ao gerar slide "+(i+1));
-     const path=`${currentUser.id}/${c.id}/visual_v3_slide_${String(i+1).padStart(2,"0")}.jpg`;
+     const path=`${currentUser.id}/${c.id}/visual_v4_slide_${String(i+1).padStart(2,"0")}.jpg`;
      const {error}=await client.storage.from("instagram-posts").upload(path,blob,{upsert:true,contentType:"image/jpeg"});
      if(error)throw error;
      const {data:pub}=client.storage.from("instagram-posts").getPublicUrl(path);
      urls.push(pub.publicUrl);
    }
-   const {data:r,error}=await client.from("contents").update({media_urls:urls,publish_error:null,template_key:"luiz_andrade_v3",visual_approved:false,visual_approved_at:null}).eq("id",c.id).select().single();
+   const {data:r,error}=await client.from("contents").update({media_urls:urls,publish_error:null,template_key:"luiz_andrade_v4",visual_approved:false,visual_approved_at:null}).eq("id",c.id).select().single();
    if(error)throw error;
    Object.assign(c,r);saveLocal();
    if(currentContentId===c.id){currentMediaUrls=urls;$("eMediaStatus").textContent=`${urls.length} mídia(s) gerada(s) automaticamente.`}
@@ -355,7 +384,7 @@ async function autoGenerateCarouselMedia(id,{silent=false,force=false}={}){
  }
 }
 async function ensureApprovedMedia(){
- const pending=data.contents.filter(c=>c.text_approved&&c.format==="Carrossel"&&!c.visual_approved&&(["PENDING_VISUAL_APPROVAL","NEEDS_CHANGES"].includes(c.status))&&(!Array.isArray(c.media_urls)||c.media_urls.length<2||!(c.media_urls[0]||"").includes("visual_v3_slide_")));
+ const pending=data.contents.filter(c=>c.text_approved&&c.format==="Carrossel"&&!c.visual_approved&&(["PENDING_VISUAL_APPROVAL","NEEDS_CHANGES"].includes(c.status))&&(!Array.isArray(c.media_urls)||c.media_urls.length<2||!(c.media_urls[0]||"").includes("visual_v4_slide_")));
  for(const c of pending)await autoGenerateCarouselMedia(c.id,{silent:true,force:true});
  render();
 }
