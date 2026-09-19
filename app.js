@@ -183,8 +183,86 @@ async function promote(id){
 }
 async function setStatus(id,status){const c=data.contents.find(x=>String(x.id)===String(id));if(!c)return;const {data:r,error}=await client.from("contents").update({status}).eq("id",id).select().single();if(error)return alert(error.message);Object.assign(c,r);saveLocal()}
 async function requestApproval(id){await setStatus(id,"AGUARDANDO_APROVACAO");go("approval")}
-async function approve(id){await setStatus(id,"APROVADO")}
+async function approve(id){await setStatus(id,"APROVADO");await autoGenerateCarouselMedia(id,{silent:true});render()}
 async function reject(id){await setStatus(id,"DRAFT");go("contents")}
+
+
+function splitCarouselSlides(script=""){
+ const parts=String(script).split(/\n(?=Slide\s+\d+)/i).map(x=>x.trim()).filter(Boolean);
+ return parts.map((part,i)=>{
+   const lines=part.split(/\n/).map(x=>x.trim()).filter(Boolean);
+   if(/^Slide\s+\d+/i.test(lines[0]||"")) lines.shift();
+   return {number:i+1,lines};
+ });
+}
+function wrapCanvasText(ctx,text,maxWidth){
+ const words=String(text).split(/\s+/), lines=[]; let line="";
+ for(const word of words){
+   const test=line?line+" "+word:word;
+   if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word}else line=test;
+ }
+ if(line)lines.push(line); return lines;
+}
+async function renderCarouselSlide(slide,total,title){
+ const canvas=document.createElement("canvas"); canvas.width=1080; canvas.height=1350;
+ const ctx=canvas.getContext("2d");
+ ctx.fillStyle="#070b12";ctx.fillRect(0,0,1080,1350);
+ const g=ctx.createLinearGradient(0,0,1080,1350);g.addColorStop(0,"#0a1422");g.addColorStop(1,"#07101b");ctx.fillStyle=g;ctx.fillRect(0,0,1080,1350);
+ ctx.fillStyle="#1687ff";ctx.fillRect(78,92,8,86);
+ ctx.fillStyle="#eef5ff";ctx.font="700 30px Arial";ctx.fillText("LUIZ ANDRADE",110,125);
+ ctx.fillStyle="#8493a7";ctx.font="22px Arial";ctx.fillText("IA • AUTOMAÇÃO • GESTÃO",110,160);
+ let y=285;
+ const lines=slide.lines||[];
+ for(let i=0;i<lines.length;i++){
+   const raw=lines[i];
+   const bullet=/^-\s+/.test(raw);
+   const isHeading=i===0 || raw.length<55&&!bullet;
+   ctx.font=isHeading?"800 58px Arial":"400 34px Arial";
+   ctx.fillStyle=isHeading?"#ffffff":"#cbd8e8";
+   const text=bullet?"• "+raw.replace(/^-\s+/,""):raw;
+   const wrapped=wrapCanvasText(ctx,text,880);
+   for(const w of wrapped){ctx.fillText(w,100,y);y+=isHeading?72:48}
+   y+=isHeading?28:16;
+   if(y>1110)break;
+ }
+ ctx.fillStyle="#1687ff";ctx.font="700 24px Arial";ctx.fillText(String(slide.number).padStart(2,"0")+" / "+String(total).padStart(2,"0"),100,1240);
+ ctx.fillStyle="#8493a7";ctx.font="20px Arial";ctx.fillText("LIFE OS CONTENT AGENT",100,1288);
+ return await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.92));
+}
+async function autoGenerateCarouselMedia(id,{silent=false}={}){
+ const c=data.contents.find(x=>String(x.id)===String(id)); if(!c||!currentUser)return false;
+ if(c.format!=="Carrossel")return false;
+ if(Array.isArray(c.media_urls)&&c.media_urls.length>=2)return true;
+ const slides=splitCarouselSlides(c.script||"");
+ if(slides.length<2){if(!silent)alert("O roteiro precisa estar dividido em Slide 1, Slide 2...");return false}
+ try{
+   if(!silent)alert("O LIFE OS vai gerar e enviar as mídias automaticamente.");
+   const urls=[];
+   for(let i=0;i<slides.length;i++){
+     const blob=await renderCarouselSlide(slides[i],slides.length,c.title);
+     if(!blob)throw new Error("Falha ao gerar slide "+(i+1));
+     const path=`${currentUser.id}/${c.id}/auto_slide_${String(i+1).padStart(2,"0")}.jpg`;
+     const {error}=await client.storage.from("instagram-posts").upload(path,blob,{upsert:true,contentType:"image/jpeg"});
+     if(error)throw error;
+     const {data:pub}=client.storage.from("instagram-posts").getPublicUrl(path);
+     urls.push(pub.publicUrl);
+   }
+   const {data:r,error}=await client.from("contents").update({media_urls:urls,publish_error:null}).eq("id",c.id).select().single();
+   if(error)throw error;
+   Object.assign(c,r);saveLocal();
+   if(currentContentId===c.id){currentMediaUrls=urls;$("eMediaStatus").textContent=`${urls.length} mídia(s) gerada(s) automaticamente.`}
+   return true;
+ }catch(e){
+   await client.from("contents").update({publish_error:"Falha ao gerar mídias: "+e.message}).eq("id",c.id);
+   if(!silent)alert("Falha ao gerar mídias automaticamente: "+e.message);
+   return false;
+ }
+}
+async function ensureApprovedMedia(){
+ const pending=data.contents.filter(c=>c.status==="APROVADO"&&c.format==="Carrossel"&&(!Array.isArray(c.media_urls)||c.media_urls.length<2));
+ for(const c of pending)await autoGenerateCarouselMedia(c.id,{silent:true});
+ render();
+}
 
 async function uploadEditorMedia(){
  if(!currentContentId||!currentUser)return alert("Abra um conteúdo antes de enviar imagens.");
@@ -266,7 +344,7 @@ async function refreshRemote(){
  if(!currentUser){remoteReady=false;data={insights:[],contents:[]};setDbState("OFFLINE","Faça login");renderAuth();render();return}
  const [{data:ins,error:ei},{data:con,error:ec}]=await Promise.all([client.from("insights").select("*").order("created_at",{ascending:false}),client.from("contents").select("*").order("created_at",{ascending:false})]);
  if(ei||ec){remoteReady=false;setDbState("CONFIGURAR","Execute a migração v0.5");renderAuth();return}
- remoteReady=true;data={insights:ins||[],contents:con||[]};localStorage.setItem("lifeos-content",JSON.stringify(data));setDbState("ONLINE","Supabase sincronizado");renderAuth();render();await refreshInstagramStatus();
+ remoteReady=true;data={insights:ins||[],contents:con||[]};localStorage.setItem("lifeos-content",JSON.stringify(data));setDbState("ONLINE","Supabase sincronizado");renderAuth();render();await refreshInstagramStatus();await ensureApprovedMedia();
 }
 function setDbState(state,msg){$("dbState").textContent=state;$("dbState").className="badge "+(state==="ONLINE"?"ok":"");$("dbHint").textContent=msg}
 function renderAuth(){$("authBtn").textContent=currentUser?"Conta":"Entrar";$("authInfo").textContent=currentUser?currentUser.email:"Sem login";$("logoutBtn").style.display=currentUser?"block":"none";$("loginGate").style.display=currentUser?"none":"grid";$("appShell").classList.toggle("auth-hidden",!currentUser)}
