@@ -236,7 +236,7 @@ async function requestVisualChanges(id){
  if(error)return alert(error.message);
  Object.assign(c,r);saveLocal();
  const ok=await autoGenerateCarouselMedia(id,{silent:true,force:true});
- if(!ok)return alert("O feedback foi salvo, mas não consegui regenerar o visual.");
+ if(!ok)return alert("O feedback foi salvo, mas houve um erro ao regenerar o visual. Corrigi o fluxo; tente novamente após atualizar a página.");
  const {data:r2,error:e2}=await client.from("contents").update({
    status:"PENDING_VISUAL_APPROVAL",
    visual_approved:false,
@@ -302,12 +302,12 @@ async function renderCarouselSlide(slide,total,title,feedback=""){
  // ambient blue light
  const glow=ctx.createRadialGradient(910,180,0,910,180,430);glow.addColorStop(0,"rgba(27,132,255,.30)");glow.addColorStop(.55,"rgba(13,76,145,.12)");glow.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=glow;ctx.fillRect(430,0,650,620);
 
+ const tune=visualTuningFromFeedback(feedback);
+
  // top brand
  ctx.fillStyle="#1788ff";ctx.fillRect(72,74,74,8);
  ctx.fillStyle="#f4f8ff";ctx.font="800 27px Arial";ctx.fillText("LUIZ ANDRADE",72,126);
  ctx.fillStyle=tune.moreContrast?"#a9b9cc":"#8091a6";ctx.font="19px Arial";ctx.fillText("IA • AUTOMAÇÃO • GESTÃO",72,160);
-
- const tune=visualTuningFromFeedback(feedback);
  let lines=[...(slide.lines||[])]; const isCover=slide.number===1;
  if(tune.lessText&&!isCover&&lines.length>5) lines=lines.slice(0,5);
  let y=isCover?(tune.moreBreathing?390:360):275;
