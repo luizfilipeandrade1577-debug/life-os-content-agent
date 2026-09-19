@@ -114,7 +114,7 @@ function approvalCard(c){
  const publish=c.text_approved===true&&c.visual_approved===true&&c.status==="APROVADO"?`<button class="btn" onclick="publishInstagram('${c.id}')">Publicar no Instagram</button>`:"";
  return `<div class="approval-card">
    <div class="approval-head"><div><b>${esc(c.title)}</b><div class="muted">${esc(c.format||"")}</div><div class="approval-stages">${visualStage(c)}</div></div>${badge(c.status)}</div>
-   ${urls.length?`<div class="slide-preview"><div class="slide-hero"><img id="approvalHero_${c.id}" src="${esc(first)}" alt="Preview"></div><div class="slide-thumbs">${thumbs}</div></div>`:'<div class="empty">As mídias serão geradas automaticamente após a aprovação do texto.</div>'}
+   ${urls.length?`<div class="format-strip"><span class="format-chip">INSTAGRAM FEED</span><span class="format-chip">3:4</span><span class="format-chip">1080×1440 px</span><span id="formatCheck_${c.id}" class="format-chip">VALIDANDO...</span></div><div class="slide-preview"><div class="slide-frame"><div class="slide-hero"><img id="approvalHero_${c.id}" src="${esc(first)}" alt="Preview" onload="validateApprovalFormat(\'${c.id}\',this)"></div></div><div class="slide-thumbs">${thumbs}</div></div>`:'<div class="empty">As mídias serão geradas automaticamente após a aprovação do texto.</div>'}
    <div class="approval-notes"><textarea id="approvalNote_${c.id}" placeholder="O que precisa mudar? Ex.: mais parecido com o Post #001, menos texto, mais contraste...">${esc(c.approval_notes||"")}</textarea></div>
    <div class="toolbar" style="margin-top:12px"><button class="btn ghost" onclick="openEditor('${c.id}')">Revisar conteúdo</button>${textAction}${visualActions}${publish}</div>
  </div>`;
@@ -256,10 +256,18 @@ async function regenerateVisual(id,afterFeedback=false){
  saveLocal();if(!afterFeedback)alert("Novo visual gerado usando o feedback salvo. Revise os slides abaixo.");
  go("approval");
 }
+function validateApprovalFormat(id,img){
+ const chip=$("formatCheck_"+id);
+ if(!chip||!img?.naturalWidth||!img?.naturalHeight)return;
+ const w=img.naturalWidth,h=img.naturalHeight,ratio=w/h;
+ const ok=Math.abs(ratio-(3/4))<0.001;
+ chip.textContent=ok?`✓ ${w}×${h} VALIDADO`:`ERRO: ${w}×${h}`;
+ chip.className="format-chip "+(ok?"ok":"err");
+}
 function showApprovalSlide(id,index,el){
  const c=data.contents.find(x=>String(x.id)===String(id)); if(!c)return;
  const url=(c.media_urls||[])[index]; if(!url)return;
- const hero=$("approvalHero_"+id);if(hero)hero.src=url;
+ const hero=$("approvalHero_"+id);if(hero){hero.onload=()=>validateApprovalFormat(id,hero);hero.src=url;}
  if(el){el.parentElement.querySelectorAll(".slide-thumb").forEach(x=>x.classList.remove("active"));el.classList.add("active")}
 }
 async function reject(id){await setStatus(id,"DRAFT");go("contents")}
