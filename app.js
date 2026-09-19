@@ -111,7 +111,7 @@ function approvalCard(c){
    <button class="btn ghost" onclick="regenerateVisual('${c.id}')">Regenerar visual</button>
    <button class="btn" onclick="approveVisual('${c.id}')">Aprovar slides</button>
    <button class="btn danger" onclick="requestVisualChanges('${c.id}')">Solicitar ajuste</button>`:"";
- const publish=c.text_approved&&c.visual_approved&&c.status==="APROVADO"?`<button class="btn" onclick="publishInstagram('${c.id}')">Publicar no Instagram</button>`:"";
+ const publish=c.text_approved===true&&c.visual_approved===true&&c.status==="APROVADO"?`<button class="btn" onclick="publishInstagram('${c.id}')">Publicar no Instagram</button>`:"";
  return `<div class="approval-card">
    <div class="approval-head"><div><b>${esc(c.title)}</b><div class="muted">${esc(c.format||"")}</div><div class="approval-stages">${visualStage(c)}</div></div>${badge(c.status)}</div>
    ${urls.length?`<div class="slide-preview"><div class="slide-hero"><img id="approvalHero_${c.id}" src="${esc(first)}" alt="Preview"></div><div class="slide-thumbs">${thumbs}</div></div>`:'<div class="empty">As mídias serão geradas automaticamente após a aprovação do texto.</div>'}
@@ -270,41 +270,60 @@ function roundRect(ctx,x,y,w,h,r,fill,stroke){
 async function renderCarouselSlide(slide,total,title){
  const canvas=document.createElement("canvas");canvas.width=1080;canvas.height=1350;
  const ctx=canvas.getContext("2d");
- const bg=ctx.createLinearGradient(0,0,1080,1350);bg.addColorStop(0,"#060b12");bg.addColorStop(.55,"#0a1524");bg.addColorStop(1,"#07101a");ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1350);
- const glow=ctx.createRadialGradient(910,180,0,910,180,380);glow.addColorStop(0,"rgba(22,135,255,.24)");glow.addColorStop(1,"rgba(22,135,255,0)");ctx.fillStyle=glow;ctx.fillRect(520,0,560,560);
- ctx.fillStyle="#1687ff";ctx.fillRect(72,78,58,7);
- ctx.fillStyle="#ffffff";ctx.font="700 25px Arial";ctx.fillText("LUIZ ANDRADE",72,128);
- ctx.fillStyle="#8190a4";ctx.font="18px Arial";ctx.fillText("IA  •  AUTOMAÇÃO  •  GESTÃO",72,160);
- roundRect(ctx,850,91,150,45,23,"rgba(22,135,255,.12)","#245a8c");ctx.fillStyle="#6bb5ff";ctx.font="700 17px Arial";ctx.fillText("LIFE OS",894,120);
+ const bg=ctx.createLinearGradient(0,0,1080,1350);bg.addColorStop(0,"#05080d");bg.addColorStop(.58,"#0a1625");bg.addColorStop(1,"#08111c");ctx.fillStyle=bg;ctx.fillRect(0,0,1080,1350);
+
+ // ambient blue light
+ const glow=ctx.createRadialGradient(910,180,0,910,180,430);glow.addColorStop(0,"rgba(27,132,255,.30)");glow.addColorStop(.55,"rgba(13,76,145,.12)");glow.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=glow;ctx.fillRect(430,0,650,620);
+
+ // top brand
+ ctx.fillStyle="#1788ff";ctx.fillRect(72,74,74,8);
+ ctx.fillStyle="#f4f8ff";ctx.font="800 27px Arial";ctx.fillText("LUIZ ANDRADE",72,126);
+ ctx.fillStyle="#8091a6";ctx.font="19px Arial";ctx.fillText("IA • AUTOMAÇÃO • GESTÃO",72,160);
 
  const lines=slide.lines||[]; const isCover=slide.number===1;
- let y=isCover?330:270;
+ let y=isCover?360:275;
+
+ // visual accent card
+ if(!isCover){
+   ctx.fillStyle="rgba(255,255,255,.025)";ctx.strokeStyle="#1f334a";ctx.lineWidth=1;
+   ctx.beginPath();ctx.roundRect(68,225,944,790,26);ctx.fill();ctx.stroke();
+ }
  if(isCover){
-   ctx.fillStyle="#6db8ff";ctx.font="700 19px Arial";ctx.fillText("IDEIA CENTRAL",74,280);
+   ctx.fillStyle="#6cb8ff";ctx.font="800 20px Arial";ctx.fillText("PONTO DE VISTA",74,300);
+   ctx.fillStyle="rgba(23,136,255,.08)";ctx.strokeStyle="#1f4a76";ctx.beginPath();ctx.roundRect(62,325,956,690,28);ctx.fill();ctx.stroke();
  }
+
  for(let i=0;i<lines.length;i++){
-   const raw=lines[i];const bullet=/^-\s+/.test(raw);
-   const isHeading=i===0||(isCover&&i<2)||(!bullet&&raw.length<54&&i<2);
+   const raw=lines[i];
+   const bullet=/^-\s+/.test(raw);
+   const short=raw.length<52;
+   const isHeading=i===0 || (isCover&&i<=1) || (!bullet&&short&&i<2);
+
    if(bullet){
-     roundRect(ctx,74,y-32,932,62,14,"rgba(255,255,255,.035)","#1d3046");
-     ctx.fillStyle="#1687ff";ctx.beginPath();ctx.arc(100,y-2,6,0,Math.PI*2);ctx.fill();
-     ctx.fillStyle="#dce8f7";ctx.font="400 28px Arial";
-     const wrapped=wrapCanvasText(ctx,raw.replace(/^-\s+/,""),840);
-     for(const w of wrapped){ctx.fillText(w,126,y+7);y+=39} y+=23;
-   }else{
-     ctx.font=isHeading?(isCover?"800 67px Arial":"800 54px Arial"):"400 31px Arial";
-     ctx.fillStyle=isHeading?"#ffffff":"#b8c7d9";
-     const max=isHeading?890:860;const wrapped=wrapCanvasText(ctx,raw,max);
-     for(const w of wrapped){ctx.fillText(w,74,y);y+=isHeading?(isCover?78:65):43}
-     y+=isHeading?24:18;
+     ctx.fillStyle="rgba(255,255,255,.035)";ctx.strokeStyle="#223b55";ctx.beginPath();ctx.roundRect(96,y-34,856,72,16);ctx.fill();ctx.stroke();
+     ctx.fillStyle="#1788ff";ctx.beginPath();ctx.arc(125,y+2,7,0,Math.PI*2);ctx.fill();
+     ctx.fillStyle="#dce7f5";ctx.font="500 30px Arial";
+     const wrapped=wrapCanvasText(ctx,raw.replace(/^-\s+/,""),775);
+     for(const w of wrapped){ctx.fillText(w,155,y+10);y+=42}
+     y+=26;
+   } else {
+     ctx.font=isHeading?(isCover?"900 72px Arial":"850 58px Arial"):"400 32px Arial";
+     ctx.fillStyle=isHeading?"#ffffff":"#bac9da";
+     const max=isHeading?850:825;
+     const wrapped=wrapCanvasText(ctx,raw,max);
+     for(const w of wrapped){ctx.fillText(w,isCover?92:104,y);y+=isHeading?(isCover?82:68):46}
+     y+=isHeading?30:18;
    }
-   if(y>1090)break;
+   if(y>1060)break;
  }
- ctx.strokeStyle="#1d2b3e";ctx.beginPath();ctx.moveTo(72,1184);ctx.lineTo(1008,1184);ctx.stroke();
- ctx.fillStyle="#1687ff";ctx.font="700 20px Arial";ctx.fillText(String(slide.number).padStart(2,"0"),72,1238);
- ctx.fillStyle="#5b6d82";ctx.font="18px Arial";ctx.fillText("/ "+String(total).padStart(2,"0"),104,1238);
- ctx.fillStyle="#8a9aae";ctx.font="18px Arial";ctx.textAlign="right";ctx.fillText("TECNOLOGIA APLICADA A PROBLEMAS REAIS",1008,1238);ctx.textAlign="left";
- return await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.94));
+
+ // footer
+ ctx.strokeStyle="#1b2d40";ctx.beginPath();ctx.moveTo(72,1188);ctx.lineTo(1008,1188);ctx.stroke();
+ ctx.fillStyle="#1788ff";ctx.font="800 21px Arial";ctx.fillText(String(slide.number).padStart(2,"0"),72,1242);
+ ctx.fillStyle="#5f7084";ctx.font="19px Arial";ctx.fillText("/ "+String(total).padStart(2,"0"),105,1242);
+ ctx.fillStyle="#8fa0b4";ctx.font="19px Arial";ctx.textAlign="right";ctx.fillText("TECNOLOGIA APLICADA A PROBLEMAS REAIS",1008,1242);ctx.textAlign="left";
+
+ return await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.95));
 }
 async function autoGenerateCarouselMedia(id,{silent=false,force=false}={}){
  const c=data.contents.find(x=>String(x.id)===String(id)); if(!c||!currentUser)return false;
@@ -318,13 +337,13 @@ async function autoGenerateCarouselMedia(id,{silent=false,force=false}={}){
    for(let i=0;i<slides.length;i++){
      const blob=await renderCarouselSlide(slides[i],slides.length,c.title);
      if(!blob)throw new Error("Falha ao gerar slide "+(i+1));
-     const path=`${currentUser.id}/${c.id}/visual_v2_slide_${String(i+1).padStart(2,"0")}.jpg`;
+     const path=`${currentUser.id}/${c.id}/visual_v3_slide_${String(i+1).padStart(2,"0")}.jpg`;
      const {error}=await client.storage.from("instagram-posts").upload(path,blob,{upsert:true,contentType:"image/jpeg"});
      if(error)throw error;
      const {data:pub}=client.storage.from("instagram-posts").getPublicUrl(path);
      urls.push(pub.publicUrl);
    }
-   const {data:r,error}=await client.from("contents").update({media_urls:urls,publish_error:null,template_key:"luiz_andrade_v2",visual_approved:false,visual_approved_at:null}).eq("id",c.id).select().single();
+   const {data:r,error}=await client.from("contents").update({media_urls:urls,publish_error:null,template_key:"luiz_andrade_v3",visual_approved:false,visual_approved_at:null}).eq("id",c.id).select().single();
    if(error)throw error;
    Object.assign(c,r);saveLocal();
    if(currentContentId===c.id){currentMediaUrls=urls;$("eMediaStatus").textContent=`${urls.length} mídia(s) gerada(s) automaticamente.`}
@@ -336,7 +355,7 @@ async function autoGenerateCarouselMedia(id,{silent=false,force=false}={}){
  }
 }
 async function ensureApprovedMedia(){
- const pending=data.contents.filter(c=>c.text_approved&&c.format==="Carrossel"&&!c.visual_approved&&(["PENDING_VISUAL_APPROVAL","NEEDS_CHANGES"].includes(c.status))&&(!Array.isArray(c.media_urls)||c.media_urls.length<2||!(c.media_urls[0]||"").includes("visual_v2_slide_")));
+ const pending=data.contents.filter(c=>c.text_approved&&c.format==="Carrossel"&&!c.visual_approved&&(["PENDING_VISUAL_APPROVAL","NEEDS_CHANGES"].includes(c.status))&&(!Array.isArray(c.media_urls)||c.media_urls.length<2||!(c.media_urls[0]||"").includes("visual_v3_slide_")));
  for(const c of pending)await autoGenerateCarouselMedia(c.id,{silent:true,force:true});
  render();
 }
