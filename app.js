@@ -1,7 +1,7 @@
-const pages={dashboard:["Dashboard","Visão geral do seu sistema de conteúdo."],insights:["Inbox de Insights","Capture ideias antes que elas se percam."],contents:["Conteúdos","Acompanhe a produção editorial."],approval:["Aprovação","Controle humano antes de qualquer publicação."],calendar:["Calendário","Planejamento editorial e agendamentos."],analytics:["Métricas","Resultados e aprendizado do agente."],rules:["Regras Editoriais","A identidade que orienta o agente."]};
-const labels={dashboard:"Dashboard",insights:"Insights",contents:"Conteúdos",approval:"Aprovação",calendar:"Calendário",analytics:"Métricas",rules:"Regras"};
+const pages={dashboard:["Dashboard","Visão geral do seu sistema de conteúdo."],insights:["Inbox de Insights","Capture ideias antes que elas se percam."],contents:["Conteúdos","Acompanhe a produção editorial."],approval:["Aprovação","Controle humano antes de qualquer publicação."],calendar:["Calendário","Planejamento editorial e agendamentos."],analytics:["Métricas","Resultados e aprendizado do agente."],instagram:["Instagram","Conexão e publicação automática."],rules:["Regras Editoriais","A identidade que orienta o agente."]};
+const labels={dashboard:"Dashboard",insights:"Insights",contents:"Conteúdos",approval:"Aprovação",calendar:"Calendário",analytics:"Métricas",instagram:"Instagram",rules:"Regras"};
 const seed={insights:[{title:"Autoridade sem entregar toda a execução",body:"Mostrar domínio do problema, explicar o que e por quê, usar cases e complexidade.",source:"Estudo",status:"INSIGHT"}],contents:[{title:"IA NÃO COMEÇA PELA FERRAMENTA. COMEÇA PELO PROBLEMA.",format:"Carrossel",status:"APROVADO",caption:"Problema → Processo → Dados → Solução → Tecnologia.",objective:"Autoridade e educação",script:"Carrossel aprovado com 9 slides.",cta:"Seguir →",hashtags:"#InteligenciaArtificial #Automacao #Gestao #Processos #Tecnologia #Negocios",notes:"Post #001 aprovado.",media_urls:["https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_01.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_02.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_03.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_04.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_05.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_06.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_07.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_08.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_09.jpg"]}]};
-let data={insights:[],contents:[]},client=null,currentUser=null,remoteReady=false,currentContentId=null;
+let data={insights:[],contents:[]},client=null,currentUser=null,remoteReady=false,currentContentId=null,currentMediaUrls=[];
 const POST001={
  title:"IA NÃO COMEÇA PELA FERRAMENTA. COMEÇA PELO PROBLEMA.",
  objective:"Mostrar que IA e automação devem partir de um problema real de negócio, reforçando autoridade em tecnologia aplicada à gestão e processos.",
@@ -123,6 +123,9 @@ function openEditor(id){
  $("eCta").value=val("cta");
  $("eHashtags").value=val("hashtags");
  $("eNotes").value=val("notes");
+ currentMediaUrls=Array.isArray(c.media_urls)?[...c.media_urls]:[];
+ $("eMediaFiles").value="";
+ $("eMediaStatus").textContent=currentMediaUrls.length?`${currentMediaUrls.length} mídia(s) carregada(s).`:"Nenhuma mídia carregada.";
  $("editorModal").classList.add("open");
 }
 function editorPayload(){return {title:$("eTitle").value.trim(),format:$("eFormat").value,objective:$("eObjective").value.trim(),script:$("eScript").value.trim(),caption:$("eCaption").value.trim(),cta:$("eCta").value.trim(),hashtags:$("eHashtags").value.trim(),notes:$("eNotes").value.trim()}}
@@ -134,7 +137,13 @@ async function saveEditor(){
  else Object.assign(data.contents.find(x=>x.id===currentContentId),payload);
  saveLocal();closeEditor();
 }
-async function sendEditorApproval(){await saveEditor();if(currentContentId)return;const c=data.contents.find(x=>x.title===$("eTitle").value.trim());if(c)await requestApproval(c.id)}
+async function sendEditorApproval(){
+ if(!currentContentId)return;
+ const id=currentContentId;
+ const payload=editorPayload(); if(!payload.title)return alert("Informe um título.");
+ if(remoteReady){const {data:r,error}=await client.from("contents").update(payload).eq("id",id).select().single();if(error)return alert("Erro ao salvar editor: "+error.message);const ix=data.contents.findIndex(x=>String(x.id)===String(id));if(ix>=0)data.contents[ix]=r}
+ await requestApproval(id);closeEditor();
+}
 async function copyGenerationBrief(){
  const c=data.contents.find(x=>String(x.id)===String(currentContentId)); if(!c)return;
  const insight=data.insights.find(i=>i.id===c.insight_id);
@@ -177,6 +186,79 @@ async function requestApproval(id){await setStatus(id,"AGUARDANDO_APROVACAO");go
 async function approve(id){await setStatus(id,"APROVADO")}
 async function reject(id){await setStatus(id,"DRAFT");go("contents")}
 
+async function uploadEditorMedia(){
+ if(!currentContentId||!currentUser)return alert("Abra um conteúdo antes de enviar imagens.");
+ const files=Array.from($("eMediaFiles").files||[]);
+ if(!files.length)return alert("Selecione uma ou mais imagens.");
+ $("eMediaStatus").textContent="Enviando imagens...";
+ const urls=[];
+ for(let i=0;i<files.length;i++){
+   const file=files[i];
+   const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+   const filename=`slide_${String(i+1).padStart(2,"0")}.${ext}`;
+   const path=`${currentUser.id}/${currentContentId}/${filename}`;
+   const {error}=await client.storage.from("instagram-posts").upload(path,file,{upsert:true,contentType:file.type||undefined});
+   if(error){$("eMediaStatus").textContent="Erro no upload.";return alert("Erro ao enviar "+file.name+": "+error.message)}
+   const {data:pub}=client.storage.from("instagram-posts").getPublicUrl(path);
+   urls.push(pub.publicUrl);
+ }
+ const {data:r,error}=await client.from("contents").update({media_urls:urls}).eq("id",currentContentId).select().single();
+ if(error)return alert("Imagens enviadas, mas não consegui salvar as URLs: "+error.message);
+ const ix=data.contents.findIndex(x=>String(x.id)===String(currentContentId)); if(ix>=0)data.contents[ix]=r;
+ currentMediaUrls=urls;
+ $("eMediaStatus").textContent=`${urls.length} mídia(s) carregada(s) e pronta(s) para publicação.`;
+ $("eMediaFiles").value="";
+ saveLocal();
+}
+
+async function invokeInstagram(body){
+ const {data:sessionData}=await client.auth.getSession();
+ if(!sessionData.session)throw new Error("Sessão expirada. Entre novamente.");
+ const {data,error}=await client.functions.invoke("instagram-publisher",{body});
+ if(error)throw error;
+ if(data?.error)throw new Error(data.error);
+ return data;
+}
+async function refreshInstagramStatus(){
+ if(!currentUser)return;
+ try{
+   const r=await invokeInstagram({action:"status"});
+   $("igBadge").textContent=r.connected?"CONECTADO":"DESCONECTADO";
+   $("igBadge").className="badge "+(r.connected?"ok":"");
+   $("igConnected").innerHTML=r.connected?`<div class="item"><div><b>@${esc(r.username||"")}</b><div class="muted">Conta pronta para publicar • API ${esc(r.api_version||"")}</div></div><span class="badge ok">ATIVA</span></div>`:'<div class="empty">Instagram ainda não conectado.</div>';
+ }catch(e){
+   $("igBadge").textContent="DESCONECTADO";$("igBadge").className="badge";
+   $("igConnected").innerHTML='<div class="empty">Instagram ainda não conectado.</div>';
+ }
+}
+async function connectInstagram(){
+ const token=$("igToken").value.trim(); if(!token)return alert("Cole o token de acesso gerado pela Meta.");
+ $("igBadge").textContent="CONECTANDO...";
+ try{
+   const r=await invokeInstagram({action:"connect",token,api_version:"v24.0"});
+   $("igToken").value="";
+   alert("Instagram conectado: @"+(r.username||""));
+   await refreshInstagramStatus();
+ }catch(e){alert("Erro ao conectar Instagram: "+e.message);await refreshInstagramStatus()}
+}
+async function publishInstagram(id){
+ const c=data.contents.find(x=>String(x.id)===String(id)); if(!c)return;
+ const qty=Array.isArray(c.media_urls)?c.media_urls.length:0;
+ if(qty<2)return alert("Envie pelo menos 2 imagens no editor antes de publicar o carrossel.");
+ if(!confirm(`Publicar agora "${c.title}" no Instagram com ${qty} imagens? Esta ação tornará o post público.`))return;
+ try{
+   await setStatus(id,"APROVADO");
+   const r=await invokeInstagram({action:"publish",content_id:id});
+   const ix=data.contents.findIndex(x=>String(x.id)===String(id));
+   if(ix>=0){data.contents[ix].status="PUBLICADO";data.contents[ix].instagram_media_id=r.media_id;data.contents[ix].instagram_published_at=new Date().toISOString()}
+   saveLocal();
+   alert("Publicado no Instagram com sucesso.");
+ }catch(e){
+   await client.from("contents").update({publish_error:e.message}).eq("id",id);
+   alert("Erro ao publicar: "+e.message);
+ }
+}
+
 async function initSupabase(){
  try{const cfg=window.LIFE_OS_CONFIG;if(!cfg||!window.supabase)return setDbState("LOCAL","Supabase não carregado");client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey);const {data:{session}}=await client.auth.getSession();currentUser=session?.user||null;client.auth.onAuthStateChange(async(_event,session)=>{currentUser=session?.user||null;await refreshRemote()});await refreshRemote()}catch(e){setDbState("LOCAL","Falha de conexão");console.error(e)}
 }
@@ -184,7 +266,7 @@ async function refreshRemote(){
  if(!currentUser){remoteReady=false;data={insights:[],contents:[]};setDbState("OFFLINE","Faça login");renderAuth();render();return}
  const [{data:ins,error:ei},{data:con,error:ec}]=await Promise.all([client.from("insights").select("*").order("created_at",{ascending:false}),client.from("contents").select("*").order("created_at",{ascending:false})]);
  if(ei||ec){remoteReady=false;setDbState("CONFIGURAR","Execute a migração v0.5");renderAuth();return}
- remoteReady=true;data={insights:ins||[],contents:con||[]};localStorage.setItem("lifeos-content",JSON.stringify(data));setDbState("ONLINE","Supabase sincronizado");renderAuth();render();
+ remoteReady=true;data={insights:ins||[],contents:con||[]};localStorage.setItem("lifeos-content",JSON.stringify(data));setDbState("ONLINE","Supabase sincronizado");renderAuth();render();await refreshInstagramStatus();
 }
 function setDbState(state,msg){$("dbState").textContent=state;$("dbState").className="badge "+(state==="ONLINE"?"ok":"");$("dbHint").textContent=msg}
 function renderAuth(){$("authBtn").textContent=currentUser?"Conta":"Entrar";$("authInfo").textContent=currentUser?currentUser.email:"Sem login";$("logoutBtn").style.display=currentUser?"block":"none";$("loginGate").style.display=currentUser?"none":"grid";$("appShell").classList.toggle("auth-hidden",!currentUser)}
