@@ -37,7 +37,7 @@ async function auth(){
  if(session){user=session.user;boot();return}
  document.getElementById("loginBtn").onclick=async()=>{const email=prompt("E-mail do LIFE OS");if(!email)return;const pass=prompt("Senha");if(!pass)return;const {error}=await sb.auth.signInWithPassword({email,password:pass});if(error)return alert(error.message);user=(await sb.auth.getUser()).data.user;boot();}
 }
-async function boot(){document.getElementById("gate").style.display="none";document.getElementById("shell").style.display="grid";await ensureSeed();await load();renderToday();await loadDashboard();await checkOpenSession();}
+async function boot(){document.getElementById("gate").style.display="none";document.getElementById("shell").style.display="grid";await ensureSeed();await load();renderToday();await loadDashboard();await checkOpenSession();setupEvolution();}
 async function ensureSeed(){
  const {data}=await sb.from("training_routines").select("id").limit(1);
  if(data&&data.length)return;
@@ -188,5 +188,88 @@ if(document.getElementById("cancelWorkoutBtn"))cancelWorkoutBtn.onclick=async()=
  if(error)return alert(error.message);
  clearInterval(timerId);stopRest();activeSession=null;pendingSession=null;workoutModal.classList.remove("open");await loadDashboard();await checkOpenSession();alert("Treino cancelado");
 };
+
+function setupEvolution(){
+ const trainingTab=document.getElementById("trainingTab"),evolutionTab=document.getElementById("evolutionTab");
+ if(!trainingTab||!evolutionTab)return;
+ trainingTab.onclick=()=>switchGymView("training");
+ evolutionTab.onclick=()=>switchGymView("evolution");
+ populateEvolutionExercises();
+}
+function switchGymView(view){
+ const training=document.getElementById("trainingView"),evolution=document.getElementById("evolutionView");
+ const t=document.getElementById("trainingTab"),e=document.getElementById("evolutionTab");
+ const isEvolution=view==="evolution";
+ training.style.display=isEvolution?"none":"block";
+ evolution.style.display=isEvolution?"block":"none";
+ t.classList.toggle("active",!isEvolution);t.classList.toggle("ghost",isEvolution);
+ e.classList.toggle("active",isEvolution);e.classList.toggle("ghost",!isEvolution);
+ if(isEvolution)loadEvolutionDashboard();
+}
+async function populateEvolutionExercises(){
+ const {data:rows}=await sb.from("training_exercises").select("id,exercise_name").order("exercise_name");
+ const seen=new Map();
+ for(const x of rows||[])if(!seen.has(x.exercise_name))seen.set(x.exercise_name,x.id);
+ const sel=document.getElementById("evolutionExercise");if(!sel)return;
+ sel.innerHTML=[...seen.keys()].sort((a,b)=>exercisePt(a).localeCompare(exercisePt(b),"pt-BR")).map(name=>'<option value="'+name.replace(/"/g,"&quot;")+'">'+exercisePt(name)+'</option>').join("");
+ sel.onchange=()=>loadExerciseEvolution(sel.value);
+}
+function isoDay(d){return d.toISOString().slice(0,10)}
+function startOfWeek(date){const d=new Date(date);const day=(d.getDay()+6)%7;d.setHours(0,0,0,0);d.setDate(d.getDate()-day);return d}
+function simpleLineChart(points,{unit="",empty="Ainda não há dados suficientes."}={}){
+ if(!points||points.length<1)return '<div class="empty">'+empty+'</div>';
+ const w=700,h=210,p=30;const vals=points.map(x=>Number(x.value)||0);let min=Math.min(...vals),max=Math.max(...vals);if(max===min){max+=1;min=Math.max(0,min-1)}
+ const x=i=>points.length===1?w/2:p+i*(w-2*p)/(points.length-1);
+ const y=v=>h-p-((v-min)/(max-min))*(h-2*p);
+ const line=points.map((pt,i)=>(i?"L":"M")+x(i).toFixed(1)+","+y(pt.value).toFixed(1)).join(" ");
+ const dots=points.map((pt,i)=>'<circle class="chart-dot" cx="'+x(i)+'" cy="'+y(pt.value)+'" r="4"></circle><text class="chart-value" x="'+x(i)+'" y="'+(y(pt.value)-9)+'" text-anchor="middle">'+Number(pt.value).toFixed(pt.decimals??1)+unit+'</text><text class="chart-label" x="'+x(i)+'" y="'+(h-8)+'" text-anchor="middle">'+pt.label+'</text>').join("");
+ const grids=[0,.5,1].map(f=>'<line class="chart-grid" x1="'+p+'" x2="'+(w-p)+'" y1="'+(p+f*(h-2*p))+'" y2="'+(p+f*(h-2*p))+'"></line>').join("");
+ return '<svg class="svg-chart" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+grids+'<path class="chart-line" d="'+line+'"></path>'+dots+'</svg>';
+}
+async function loadEvolutionDashboard(){
+ const now=new Date(),seven=new Date(now);seven.setDate(now.getDate()-7);
+ const {data:sessions}=await sb.from("training_sessions").select("id,started_at,finished_at").not("finished_at","is",null).order("started_at",{ascending:true}).limit(500);
+ const finished=sessions||[];
+ document.getElementById("evWeekCount").textContent=finished.filter(x=>new Date(x.started_at)>=seven).length;
+ const weekKeys=new Set(finished.map(x=>isoDay(startOfWeek(new Date(x.started_at)))));
+ let streak=0,cursor=startOfWeek(now);for(let i=0;i<52;i++){const key=isoDay(cursor);if(weekKeys.has(key)){streak++;cursor.setDate(cursor.getDate()-7)}else if(i===0){cursor.setDate(cursor.getDate()-7)}else break}
+ document.getElementById("evStreak").textContent=streak;
+ const {data:weights}=await sb.from("body_metrics").select("weight_kg,recorded_on").order("recorded_on",{ascending:true}).limit(180);
+ const wp=weights||[];
+ const current=wp.length?Number(wp[wp.length-1].weight_kg):null;
+ document.getElementById("evCurrentWeight").textContent=current?current.toFixed(1)+" kg":"—";
+ document.getElementById("evGoalRemaining").textContent=current?Math.max(0,75-current).toFixed(1)+" kg":"—";
+ const delta=wp.length>1?current-Number(wp[0].weight_kg):0;
+ document.getElementById("weightDelta").textContent=wp.length>1?(delta>=0?"+":"")+delta.toFixed(1)+" kg desde o início":"Sem histórico";
+ const baseline=wp.length?Number(wp[0].weight_kg):71;
+ const progress=current?Math.max(0,Math.min(100,((current-baseline)/(75-baseline))*100)):0;
+ document.getElementById("goalProgress").style.width=(isFinite(progress)?progress:0)+"%";
+ document.getElementById("weightChart").innerHTML=simpleLineChart(wp.slice(-10).map(x=>({value:Number(x.weight_kg),label:new Date(x.recorded_on+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}),decimals:1})),{unit:" kg",empty:"Registre seu peso para começar o gráfico."});
+ renderWeeklyFrequency(finished);
+ const sel=document.getElementById("evolutionExercise");if(sel&&sel.value)await loadExerciseEvolution(sel.value);
+}
+function renderWeeklyFrequency(sessions){
+ const box=document.getElementById("weeklyFrequency");const now=startOfWeek(new Date());const weeks=[];
+ for(let i=3;i>=0;i--){const start=new Date(now);start.setDate(start.getDate()-7*i);const end=new Date(start);end.setDate(end.getDate()+7);const count=sessions.filter(s=>{const d=new Date(s.started_at);return d>=start&&d<end}).length;weeks.push({start,count});}
+ box.innerHTML=weeks.map((w,i)=>'<div class="week-card"><div class="muted">'+(i===3?"Esta semana":"Semana "+new Date(w.start).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}))+'</div><div class="week-count">'+w.count+'</div><div class="muted">treino'+(w.count===1?"":"s")+'</div></div>').join("");
+}
+async function loadExerciseEvolution(exerciseName){
+ const {data:exRows}=await sb.from("training_exercises").select("id").eq("exercise_name",exerciseName);
+ const ids=(exRows||[]).map(x=>x.id);if(!ids.length)return;
+ const {data:sets}=await sb.from("training_sets").select("session_id,exercise_id,weight_kg,reps,completed").in("exercise_id",ids).eq("completed",true);
+ const sessionIds=[...new Set((sets||[]).map(x=>x.session_id))];
+ let sessions=[];if(sessionIds.length){const {data:s}=await sb.from("training_sessions").select("id,started_at,finished_at").in("id",sessionIds).not("finished_at","is",null).order("started_at",{ascending:true});sessions=s||[]}
+ const smap=Object.fromEntries(sessions.map(s=>[s.id,s]));
+ const groups={};for(const st of sets||[]){if(!smap[st.session_id])continue;if(!groups[st.session_id])groups[st.session_id]=[];groups[st.session_id].push(st)}
+ const points=Object.entries(groups).map(([sid,rows])=>{const s=smap[sid];return {date:new Date(s.started_at),max:Math.max(...rows.map(r=>Number(r.weight_kg)||0)),volume:rows.reduce((n,r)=>n+(Number(r.weight_kg)||0)*(Number(r.reps)||0),0)}}).sort((a,b)=>a.date-b.date);
+ const last=points[points.length-1],best=points.length?Math.max(...points.map(p=>p.max)):0;
+ document.getElementById("evLastLoad").textContent=last?last.max.toFixed(1)+" kg":"—";
+ document.getElementById("evBestLoad").textContent=points.length?best.toFixed(1)+" kg":"—";
+ document.getElementById("evLastVolume").textContent=last?Math.round(last.volume)+" kg":"—";
+ const trend=document.getElementById("evTrend");trend.className="trend-pill";
+ if(points.length<2){trend.textContent="Coletando dados"}
+ else{const first=points[0].max,diff=last.max-first;if(diff>0){trend.textContent="↑ Evoluindo";trend.classList.add("up")}else if(diff<0){trend.textContent="↓ Abaixo do início";trend.classList.add("down")}else trend.textContent="→ Estável"}
+ document.getElementById("exerciseChart").innerHTML=simpleLineChart(points.slice(-10).map(p=>({value:p.max,label:p.date.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}),decimals:1})),{unit:" kg",empty:"Faça este exercício em pelo menos um treino para gerar o gráfico."});
+}
 
 auth();
