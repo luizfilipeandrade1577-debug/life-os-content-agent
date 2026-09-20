@@ -14,7 +14,7 @@ async function auth(){
  if(session){user=session.user;boot();return}
  document.getElementById("loginBtn").onclick=async()=>{const email=prompt("E-mail do LIFE OS");if(!email)return;const pass=prompt("Senha");if(!pass)return;const {error}=await sb.auth.signInWithPassword({email,password:pass});if(error)return alert(error.message);user=(await sb.auth.getUser()).data.user;boot();}
 }
-async function boot(){document.getElementById("gate").style.display="none";document.getElementById("shell").style.display="grid";await ensureSeed();await load();await loadDashboard();await checkOpenSession();}
+async function boot(){document.getElementById("gate").style.display="none";document.getElementById("shell").style.display="grid";await ensureSeed();await load();renderToday();await loadDashboard();await checkOpenSession();}
 async function ensureSeed(){
  const {data}=await sb.from("training_routines").select("id").limit(1);
  if(data&&data.length)return;
@@ -30,6 +30,7 @@ async function load(){
  const {data:r}=await sb.from("training_routines").select("*").order("position");
  routines=r||[];renderRoutines();if(routines[0])selectRoutine(routines[0].id);
 }
+function renderToday(){const d=new Date().getDay();const day=d===0?7:d;const r=routines.find(x=>x.day_of_week===day);if(!r){todayTitle.textContent="Dia livre";todayText.textContent="Sem musculação programada. Caminhada, mobilidade ou atividade leve.";todayBtn.style.display="none";return}todayTitle.textContent=r.name.replace("LIFE OS - ","");todayText.textContent=DAYS[day]+" • treino programado para hoje";todayBtn.style.display="inline-block";todayBtn.onclick=async()=>{selected=r.id;renderRoutines();await selectRoutine(r.id);await startWorkout();};}
 function renderRoutines(){
  routineGrid.innerHTML=routines.map(r=>`<div class="card routine ${selected===r.id?"active":""}" onclick="selectRoutine('${r.id}')"><span class="badge">${DAYS[r.day_of_week]}</span><h3>${r.name.replace("LIFE OS - ","")}</h3><div class="muted">${r.name}</div></div>`).join("");
 }
@@ -41,7 +42,34 @@ async function selectRoutine(id){
 startBtn.onclick=startWorkout;
 async function checkOpenSession(){const {data:s}=await sb.from("training_sessions").select("*").is("finished_at",null).order("started_at",{ascending:false}).limit(1);pendingSession=s&&s[0]?s[0]:null;if(!pendingSession){if(document.getElementById("resumeCard"))resumeCard.style.display="none";return}const r=routines.find(x=>x.id===pendingSession.routine_id);if(document.getElementById("resumeCard"))resumeCard.style.display="block";if(document.getElementById("resumeText"))resumeText.textContent=(r?r.name:"Treino")+" • iniciado "+new Date(pendingSession.started_at).toLocaleString("pt-BR");}
 if(document.getElementById("resumeBtn"))resumeBtn.onclick=()=>{if(pendingSession)resumeWorkout(pendingSession);};
-async function loadDashboard(){const {data:w}=await sb.from("body_metrics").select("weight_kg,recorded_on").order("recorded_on",{ascending:false}).limit(1);if(document.getElementById("currentWeight"))currentWeight.textContent=w&&w[0]&&w[0].weight_kg?Number(w[0].weight_kg).toFixed(1)+" kg":"71 kg";if(document.getElementById("weightHint"))weightHint.textContent=w&&w[0]?"Último registro: "+w[0].recorded_on:"Sem registro ainda";const {data:s}=await sb.from("training_sessions").select("id,started_at,finished_at,routine_id").not("finished_at","is",null).order("started_at",{ascending:false}).limit(8);if(document.getElementById("completedCount"))completedCount.textContent=(s||[]).length;const map=Object.fromEntries(routines.map(r=>[r.id,r.name]));if(document.getElementById("historyList"))historyList.innerHTML=(s||[]).length?(s||[]).map(x=>"<div class=\"item\"><b>"+(map[x.routine_id]||"Treino")+"</b><div class=\"muted\">"+new Date(x.started_at).toLocaleString("pt-BR")+"</div></div>").join(""):"<div class=\"muted\">Nenhum treino concluído ainda.</div>";}
+async function loadDashboard(){
+ const {data:w}=await sb.from("body_metrics").select("weight_kg,recorded_on").order("recorded_on",{ascending:false}).limit(1);
+ if(document.getElementById("currentWeight"))currentWeight.textContent=w&&w[0]&&w[0].weight_kg?Number(w[0].weight_kg).toFixed(1)+" kg":"71 kg";
+ if(document.getElementById("weightHint"))weightHint.textContent=w&&w[0]?"Último registro: "+w[0].recorded_on:"Sem registro ainda";
+ const {data:s}=await sb.from("training_sessions").select("id,started_at,finished_at,routine_id").not("finished_at","is",null).order("started_at",{ascending:false}).limit(20);
+ if(document.getElementById("completedCount"))completedCount.textContent=(s||[]).length;
+ const map=Object.fromEntries(routines.map(r=>[r.id,r.name]));
+ if(!(s||[]).length){historyList.innerHTML='<div class="muted">Nenhum treino concluído ainda.</div>';return}
+ const ids=s.map(x=>x.id);
+ const {data:sets}=await sb.from("training_sets").select("session_id,weight_kg,reps,completed").in("session_id",ids).eq("completed",true);
+ const agg={};for(const st of sets||[]){if(!agg[st.session_id])agg[st.session_id]={sets:0,volume:0};agg[st.session_id].sets++;agg[st.session_id].volume+=(Number(st.weight_kg)||0)*(Number(st.reps)||0);}
+ historyList.innerHTML=s.map(x=>{const a=agg[x.id]||{sets:0,volume:0};const mins=x.finished_at?Math.max(1,Math.round((new Date(x.finished_at)-new Date(x.started_at))/60000)):0;return '<div class="item" onclick="openHistory(\''+x.id+'\')"><div><b>'+(map[x.routine_id]||"Treino")+'</b><div class="muted">'+new Date(x.started_at).toLocaleString("pt-BR")+'</div><div class="history-stats"><span class="badge">'+mins+' min</span><span class="badge">'+a.sets+' séries</span><span class="badge">'+Math.round(a.volume)+' kg volume</span></div></div><span class="demo">Ver detalhes ›</span></div>';}).join("");
+}
+window.openHistory=async sessionId=>{
+ const {data:s,error}=await sb.from("training_sessions").select("*").eq("id",sessionId).single();if(error)return alert(error.message);
+ const r=routines.find(x=>x.id===s.routine_id);
+ const {data:sets}=await sb.from("training_sets").select("*").eq("session_id",sessionId).eq("completed",true).order("created_at");
+ const exIds=[...new Set((sets||[]).map(x=>x.exercise_id).filter(Boolean))];
+ let exMap={};if(exIds.length){const {data:e}=await sb.from("training_exercises").select("id,exercise_name,position").in("id",exIds);exMap=Object.fromEntries((e||[]).map(x=>[x.id,x]));}
+ const mins=s.finished_at?Math.max(1,Math.round((new Date(s.finished_at)-new Date(s.started_at))/60000)):0;
+ const volume=(sets||[]).reduce((n,x)=>n+(Number(x.weight_kg)||0)*(Number(x.reps)||0),0);
+ historyTitle.textContent=r?r.name:"Treino";
+ historyMeta.textContent=new Date(s.started_at).toLocaleString("pt-BR")+" • "+mins+" min • "+Math.round(volume)+" kg de volume";
+ const groups={};for(const st of sets||[]){const k=st.exercise_id||"x";if(!groups[k])groups[k]=[];groups[k].push(st);}
+ historyDetail.innerHTML=Object.entries(groups).map(([id,rows])=>'<div class="history-ex"><h3>'+(exMap[id]?.exercise_name||"Exercício")+'</h3>'+rows.sort((a,b)=>a.set_number-b.set_number).map(st=>'<div class="history-set"><span>S'+st.set_number+'</span><span>'+Number(st.weight_kg||0)+' kg</span><span>'+st.reps+' reps</span></div>').join("")+'</div>').join("")||'<div class="muted">Sem séries registradas.</div>';
+ historyModal.classList.add("open");historyModal.scrollTop=0;
+};
+if(document.getElementById("closeHistoryBtn"))closeHistoryBtn.onclick=()=>historyModal.classList.remove("open");
 if(document.getElementById("saveWeightBtn"))saveWeightBtn.onclick=async()=>{const kg=Number(weightInput.value.replace(",","."));if(!kg||kg<30||kg>250)return alert("Informe um peso válido.");const {error}=await sb.from("body_metrics").upsert({user_id:user.id,recorded_on:new Date().toISOString().slice(0,10),weight_kg:kg},{onConflict:"user_id,recorded_on"});if(error)return alert(error.message);weightInput.value="";await loadDashboard();};
 function progressionText(ex,prevMap){const targets=ex.reps||[];const prev=Array.from({length:ex.sets},(_,i)=>prevMap[ex.id+"_"+(i+1)]).filter(Boolean);if(prev.length<ex.sets)return "Primeiro treino: encontre uma carga confortável e registre.";const hit=prev.every((p,i)=>Number(p.reps)>=Number(targets[i]||0));const max=Math.max(...prev.map(p=>Number(p.weight_kg)||0));if(!max)return "Registre sua carga para habilitar progressão.";return hit?"Sugestão: se a execução estiver boa, tente +2,5 kg hoje.":"Sugestão: mantenha a carga anterior e busque bater as repetições-alvo.";}
 async function buildWorkout(session,routineId){
