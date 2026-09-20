@@ -3,12 +3,12 @@ const sb=supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey);
 let user=null,agents=[],tasks=[],approvals=[],events=[],leads=[],memories=[],projects=[],selectedSector="direcao";
 
 const SECTORS={
- direcao:{title:"Direção & Estratégia",desc:"Prioridades, decisões, visão e coordenação dos agentes."},
- comercial:{title:"Comercial",desc:"Prospecção, qualificação, vendas, propostas e follow-up."},
- operacoes:{title:"Operações",desc:"Diagnóstico, projetos, automações e construção de soluções."},
+ direcao:{title:"CEO / Direção / Jurídico",desc:"Estratégia, decisões, governança, contratos, riscos e coordenação do cérebro empresarial."},
+ comercial:{title:"Comercial & Receita",desc:"Prospecção, qualificação, vendas, propostas, pipeline e geração de receita."},
+ operacoes:{title:"Engenharia & Operações",desc:"Diagnóstico, automações, agentes, sistemas, projetos e construção das soluções."},
  financeiro:{title:"Financeiro",desc:"Receitas, custos, cobranças, margem e previsibilidade."},
- cs:{title:"Customer Success",desc:"Onboarding, relacionamento, suporte, retenção e expansão."},
- marketing:{title:"Marketing",desc:"Conteúdo, autoridade, cases e geração de demanda."}
+ cs:{title:"Cliente",desc:"Onboarding, relacionamento, suporte, retenção, feedback e expansão."},
+ marketing:{title:"Growth",desc:"Conteúdo, autoridade, distribuição, aquisição, experimentos e geração de demanda."}
 };
 
 const DEFAULT_AGENTS=[
