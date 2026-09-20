@@ -124,7 +124,7 @@ const pageInfo={
 };
 function renderBlocks(){
  const box=document.getElementById("studyBlocks");if(!box)return;
- box.innerHTML=studyBlocks.map(b=>'<div class="study-block"><span class="badge">PÁG. '+b.page+'</span><h3>'+b.title+'</h3><div class="muted">'+b.desc+' • '+b.keys.length+' questões</div><div class="actions"><button class="btn" onclick="startStudyBlock(\''+b.id+'\')">Estudar bloco</button><button class="btn ghost" onclick="openStudyPage('+b.page+')">Abrir página</button></div></div>').join("");
+ box.innerHTML=studyBlocks.map(b=>'<div class="study-block" id="block-'+b.id+'"><div class="top" style="margin:0"><span class="badge">PÁG. '+b.page+'</span><span class="badge" id="progress-'+b.id+'">0%</span></div><h3>'+b.title+'</h3><div class="muted">'+b.desc+' • '+b.keys.length+' questões</div><div class="progress section"><div id="bar-'+b.id+'" style="width:0%"></div></div><div class="actions"><button class="btn" onclick="startStudyBlock(\''+b.id+'\')">Estudar bloco</button><button class="btn ghost" onclick="openStudyPage('+b.page+')">Abrir página</button></div></div>').join("");
 }
 function blockQuestions(block){return block.keys.map(k=>questions.find(q=>q.key===k)).filter(Boolean)}
 window.startStudyBlock=async id=>{
@@ -149,12 +149,28 @@ window.openStudyPage=page=>{
  pageModal.classList.add("open");pageModal.scrollTop=0;
 };
 window.closeStudyPage=()=>pageModal.classList.remove("open");
+
+async function refreshBlockProgress(){
+ const {data:sessions}=await sb.from("study_sessions").select("id,lesson_key,finished_at").eq("subject","Inglês").order("started_at",{ascending:false}).limit(200);
+ const ids=(sessions||[]).map(s=>s.id);
+ let answers=[];
+ if(ids.length){const {data:a}=await sb.from("study_answers").select("session_id,question_key,is_correct").in("session_id",ids);answers=a||[]}
+ for(const b of studyBlocks){
+   const blockSessions=(sessions||[]).filter(s=>s.lesson_key==="btb5_"+b.id);
+   const sidSet=new Set(blockSessions.map(s=>s.id));
+   const correctKeys=new Set(answers.filter(a=>sidSet.has(a.session_id)&&a.is_correct).map(a=>a.question_key).filter(k=>b.keys.includes(k)));
+   const pct=Math.round((correctKeys.size/b.keys.length)*100);
+   const label=document.getElementById("progress-"+b.id),bar=document.getElementById("bar-"+b.id);
+   if(label)label.textContent=pct+"%";
+   if(bar)bar.style.width=pct+"%";
+ }
+}
 async function auth(){
  const {data:{session}}=await sb.auth.getSession();
  if(session){user=session.user;boot();return}
  loginBtn.onclick=async()=>{const email=prompt("E-mail do LIFE OS");if(!email)return;const pass=prompt("Senha");if(!pass)return;const {error}=await sb.auth.signInWithPassword({email,password:pass});if(error)return alert(error.message);user=(await sb.auth.getUser()).data.user;boot();}
 }
-async function boot(){gate.style.display="none";shell.style.display="grid";await ensureMaterial();renderBlocks();await loadHistory();}
+async function boot(){gate.style.display="none";shell.style.display="grid";await ensureMaterial();renderBlocks();await refreshBlockProgress();await loadHistory();}
 async function ensureMaterial(){
  const {data}=await sb.from("study_materials").select("*").eq("subject","Inglês").eq("source_name","BTB - 5 - A.pdf").eq("page_start",35).eq("page_end",39).limit(1);
  if(data&&data.length)return data[0];
@@ -232,6 +248,10 @@ async function checkAnswer(){
  }
  const payload={user_id:user.id,session_id:currentSession.id,question_key:q.key,prompt:q.prompt,answer:ans,is_correct:correct,feedback};
  await sb.from("study_answers").upsert(payload,{onConflict:"session_id,question_key"});
+ if(correct){
+   studyProgress.style.width=(((currentIndex+1)/activeQuestions.length)*100)+"%";
+   await refreshBlockProgress();
+ }
  feedbackBox.innerHTML='<div class="feedback '+(correct?"good":"fix")+'">'+feedback+'</div>';
  if(!correct){
    checkBtn.textContent="Tentar novamente";
@@ -247,7 +267,7 @@ async function finishStudy(){
  await sb.from("study_sessions").update({finished_at:new Date().toISOString(),score}).eq("id",currentSession.id);
  studyProgress.style.width="100%";
  questionArea.innerHTML='<div class="question-card"><h2>Sessão concluída</h2><div class="metric">'+score+'%</div><div class="muted">'+ok+' de '+total+' respostas corretas.</div><div class="section"><button class="btn" onclick="location.reload()">Nova revisão</button></div></div>';
- currentSession=null;await loadHistory();
+ currentSession=null;await refreshBlockProgress();await loadHistory();
 }
 async function loadHistory(){
  const {data:s}=await sb.from("study_sessions").select("started_at,finished_at,score,lesson_key").eq("subject","Inglês").not("finished_at","is",null).order("started_at",{ascending:false}).limit(12);
