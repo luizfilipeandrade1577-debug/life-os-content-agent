@@ -49,7 +49,7 @@ function validatePersonal(q,ans){
  const n=normalize(ans);
  const rules={
   p35_q1:{ok:/^i was born in\s+.+/.test(n),msg:'Use a preposição: “I was born in Brazil.”'},
-  p35_q2:{ok:/^i was born (on|in)\s+.+/.test(n),msg:'Use: “I was born on...” para uma data ou “I was born in...” para mês/ano.'},
+  p35_q2:{ok:(/^i was born on\s+.+/.test(n)||/^i was born in\s+(january|february|march|april|may|june|july|august|september|october|november|december|(19|20)\d{2})$/.test(n)),msg:'A pergunta é “When were you born?” (Quando você nasceu?). Responda com data, mês ou ano, por exemplo: “I was born in 2003.” ou “I was born on May 10th.”'},
   p35_q3:{ok:/^i was born in\s+(19|20)\d{2}$/.test(n),msg:'Use a frase completa, por exemplo: “I was born in 2003.”'},
   p35_q4:{ok:/^i was\s+.+/.test(n),msg:'Comece com “I was...” e descreva como você era.'},
   p35_q5:{ok:/^i was\s+\d+\s+years? old$/.test(n),msg:'Use: “I was ... years old.”'},
