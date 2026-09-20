@@ -134,9 +134,9 @@ window.openExerciseDemo=async encodedName=>{
  exerciseDemoModal.classList.add("open");
  const curated=CURATED_DEMOS[exerciseName];
  if(curated){
-   const startParam=curated.start?("&start="+curated.start):"";
-   demoMedia.innerHTML='<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="https://www.youtube-nocookie.com/embed/'+curated.id+'?rel=0'+startParam+'"></iframe>';
-   demoSteps.innerHTML='<h3>'+curated.creator+'</h3><p class="muted">'+curated.title+'</p><p>Vídeo selecionado manualmente para este exercício. Prioridade para criadores com foco técnico e científico.</p>';
+   const clipStart=Number(curated.start||0);const clipEnd=clipStart+55;
+   demoMedia.innerHTML='<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="https://www.youtube-nocookie.com/embed/'+curated.id+'?rel=0&start='+clipStart+'&end='+clipEnd+'"></iframe>';
+   demoSteps.innerHTML='<h3>'+curated.creator+'</h3><p class="muted">Demonstração rápida • até 55 segundos</p><p>Trecho curto selecionado para mostrar somente a execução do movimento.</p>';
    return;
  }
  try{
