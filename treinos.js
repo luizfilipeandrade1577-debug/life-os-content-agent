@@ -103,13 +103,42 @@ if(document.getElementById("finishWorkoutBtn"))finishWorkoutBtn.onclick=async()=
 
 function cleanHtmlText(v=""){const d=document.createElement("div");d.innerHTML=v;return d.textContent||d.innerText||"";}
 function scoreExerciseName(name,query){name=(name||"").toLowerCase();query=(query||"").toLowerCase();if(name===query)return 100;if(name.includes(query)||query.includes(name))return 80;const q=query.split(/\s+/).filter(Boolean);return q.reduce((s,w)=>s+(name.includes(w)?10:0),0);}
+const CURATED_DEMOS={
+ "Dumbbell Incline Press":{id:"LwHoNk-sjgs",creator:"Jeff Nippard",title:"Science-Based Push Workout",start:0},
+ "Cable Incline Fly":{id:"LwHoNk-sjgs",creator:"Jeff Nippard",title:"Science-Based Push Workout",start:0},
+ "Chest Fly Machine":{id:"s43pV7vCqMM",creator:"Renaissance Periodization",title:"Mass Gain Training — Chest",start:0},
+ "Shoulder Press Machine":{id:"RtRWO8vrZZA",creator:"Renaissance Periodization",title:"Shoulder Press Technique",start:681},
+ "Cable Lateral Raise":{id:"lq7eLC30b9w",creator:"Renaissance Periodization",title:"Leaning Cable Lateral Raise",start:0},
+ "Cable Tricep Extension":{id:"LwHoNk-sjgs",creator:"Jeff Nippard",title:"Science-Based Push Workout",start:0},
+ "Cable Overhead Tricep Extension":{id:"LwHoNk-sjgs",creator:"Jeff Nippard",title:"Science-Based Push Workout",start:0},
+ "Barbell Back Squat":{id:"jf9PBwwNAMs",creator:"Jeff Nippard",title:"Best Scientific Leg Workout",start:0},
+ "Leg Press Machine":{id:"P8TfK9wmFVo",creator:"Renaissance Periodization",title:"How to Leg Press for BEST Growth",start:0},
+ "Leg Extension Machine":{id:"jf9PBwwNAMs",creator:"Jeff Nippard",title:"Best Scientific Leg Workout",start:0},
+ "Barbell Romanian Deadlift":{id:"5bJEigM5iVg",creator:"Squat University",title:"Ultimate Romanian Deadlift Tutorial",start:0},
+ "Seated Leg Curl Machine":{id:"jf9PBwwNAMs",creator:"Jeff Nippard",title:"Best Scientific Leg Workout",start:0},
+ "Seated Calf Raise Machine":{id:"hRZ5MM6gmlE",creator:"Jeff Nippard",title:"Leg Workout — Calves & Lower Body",start:651},
+ "Cable Lat Pulldown":{id:"KV4D8MQrdhw",creator:"Jeff Nippard",title:"Best Scientific Pull Workout",start:0},
+ "Dumbbell Chest Supported Row":{id:"KV4D8MQrdhw",creator:"Jeff Nippard",title:"Best Scientific Pull Workout",start:0},
+ "Cable Row":{id:"KV4D8MQrdhw",creator:"Jeff Nippard",title:"Best Scientific Pull Workout",start:0},
+ "Cable Face Pull":{id:"KV4D8MQrdhw",creator:"Jeff Nippard",title:"Best Scientific Pull Workout",start:0},
+ "Dumbbell Bicep Curl":{id:"_GziHDdJY10",creator:"Jeff Nippard",title:"3 Biceps Exercises",start:0},
+ "Hammer Curl":{id:"_GziHDdJY10",creator:"Jeff Nippard",title:"3 Biceps Exercises",start:0},
+ "Hip Thrust":{id:"jf9PBwwNAMs",creator:"Jeff Nippard",title:"Best Scientific Leg Workout",start:0}
+};
 window.openExerciseDemo=async encodedName=>{
  const exerciseName=decodeURIComponent(encodedName);
  demoTitle.textContent=exerciseName;
- demoSubtitle.textContent="Demonstração dentro do LIFE OS GYM";
+ demoSubtitle.textContent="Demonstração selecionada para o LIFE OS GYM";
  demoMedia.innerHTML='<div class="demo-empty">Carregando demonstração...</div>';
  demoSteps.innerHTML="";
  exerciseDemoModal.classList.add("open");
+ const curated=CURATED_DEMOS[exerciseName];
+ if(curated){
+   const startParam=curated.start?("&start="+curated.start):"";
+   demoMedia.innerHTML='<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="https://www.youtube-nocookie.com/embed/'+curated.id+'?rel=0'+startParam+'"></iframe>';
+   demoSteps.innerHTML='<h3>'+curated.creator+'</h3><p class="muted">'+curated.title+'</p><p>Vídeo selecionado manualmente para este exercício. Prioridade para criadores com foco técnico e científico.</p>';
+   return;
+ }
  try{
   const res=await fetch("https://wger.de/api/v2/exerciseinfo/?limit=20&name__search="+encodeURIComponent(exerciseName));
   if(!res.ok)throw new Error("Falha");
