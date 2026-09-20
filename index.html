@@ -83,10 +83,13 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
   .slide-thumbs{grid-template-columns:repeat(3,1fr)}
   .approval-card .toolbar{grid-template-columns:1fr}
 }
+
+.insight-capture{display:grid;gap:10px}.insight-media-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.record-box{border:1px dashed var(--line);border-radius:10px;padding:12px;background:#08101a}.recording{color:#ff8fa3;font-weight:700}.capture-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.capture-preview img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}.insight-links{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.insight-links a{color:#8bc2ff;text-decoration:none}.audio-chip{display:inline-flex;align-items:center;gap:6px;color:#8bc2ff;font-size:12px;margin-top:6px}
+@media(max-width:700px){.insight-media-row{grid-template-columns:1fr}.record-box .toolbar{display:grid;grid-template-columns:1fr 1fr}.record-box .btn{width:100%}}
 </style></head><body>
-<div id="loginGate" class="login-gate"><div class="login-box"><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.13.1</div><h1>Bem-vindo</h1><p>Entre para acessar seu Dashboard, insights, conteúdos, aprovações e calendário. Seus dados ficam sincronizados no Supabase.</p><button class="btn" onclick="openAuth()">Entrar no LIFE OS</button></div></div>
+<div id="loginGate" class="login-gate"><div class="login-box"><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.14</div><h1>Bem-vindo</h1><p>Entre para acessar seu Dashboard, insights, conteúdos, aprovações e calendário. Seus dados ficam sincronizados no Supabase.</p><button class="btn" onclick="openAuth()">Entrar no LIFE OS</button></div></div>
 <div id="appShell" class="app auth-hidden">
-<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.13.1</div><div class="toolbar" style="margin-bottom:14px"><a class="btn ghost" href="./index.html">Instagram</a><a class="btn ghost" href="./treinos.html">Treinos</a></div><nav id="nav"></nav><div class="statusbar"><span id="dbState" class="badge">LOCAL</span><span id="dbHint" class="muted">Carregando...</span></div></aside>
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.14</div><div class="toolbar" style="margin-bottom:14px"><a class="btn ghost" href="./index.html">Instagram</a><a class="btn ghost" href="./treinos.html">Treinos</a></div><nav id="nav"></nav><div class="statusbar"><span id="dbState" class="badge">LOCAL</span><span id="dbHint" class="muted">Carregando...</span></div></aside>
 <main><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="desc">Visão geral do seu sistema de conteúdo.</div></div><div class="account"><span id="authInfo" class="muted">Sem login</span><button id="authBtn" class="btn ghost" onclick="openAuth()">Entrar</button><button class="btn" onclick="openInsight()">+ Novo insight</button></div></div>
 <section id="dashboard" class="section active"><div class="grid" id="metrics"></div><div class="two"><div class="card"><h3>Fila de produção</h3><div class="list" id="queue"></div></div><div class="card"><h3>Próximos passos</h3><div class="list"><div class="item"><span>Capturar novos insights</span><span class="badge">INBOX</span></div><div class="item"><span>Gerar e revisar conteúdo</span><span class="badge">EDITOR</span></div><div class="item"><span>Conectar Instagram API</span><span class="badge">ETAPA 2</span></div></div></div></div></section>
 <section id="insights" class="section"><div class="card"><h3>Inbox de Insights</h3><div class="list" id="insightList"></div></div></section>
@@ -98,7 +101,29 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
 <section id="rules" class="section"><div class="card"><h3>Identidade editorial v1</h3><div class="rule"><b>Posicionamento</b><br><span class="muted">IA, automação e gestão aplicadas a problemas reais de empresas.</span></div><div class="rule"><b>Narrativa</b><br><span class="muted">Aprender → aplicar → construir → medir → compartilhar.</span></div><div class="rule"><b>Visual</b><br><span class="muted">Preto/navy, branco, azul; moderno, profissional e natural.</span></div><div class="rule"><b>Conteúdo</b><br><span class="muted">Problemas reais, processos, REFRIFLOW, aprendizados, aplicações e cases.</span></div><div class="rule"><b>Regra central</b><br><span class="muted">IA cria → Luiz aprova → sistema publica. Nada é publicado sem aprovação.</span></div></div></section>
 </main></div>
 
-<div class="modal" id="modal"><div class="card"><div class="top"><h2>Novo insight</h2><button class="btn ghost" onclick="closeModal()">Fechar</button></div><div class="form"><input id="iTitle" placeholder="Título / ideia"><textarea id="iBody" placeholder="Cole uma ideia, aprendizado, observação, link ou contexto..."></textarea><select id="iSource"><option>Trabalho</option><option>REFRIFLOW</option><option>Estudo</option><option>Notícia</option><option>Dia a dia</option><option>Outro</option></select><button class="btn" onclick="saveInsight()">Salvar no Inbox</button></div></div></div>
+<div class="modal" id="modal"><div class="card"><div class="top"><div><h2>Novo insight</h2><div class="muted">Texto, link, foto ou áudio — capture do jeito mais rápido.</div></div><button class="btn ghost" onclick="closeModal()">Fechar</button></div>
+<div class="form insight-capture">
+<input id="iTitle" placeholder="Título / ideia (opcional)">
+<textarea id="iBody" placeholder="Escreva uma ideia, observação ou contexto..."></textarea>
+<input id="iLink" type="url" placeholder="Cole um link (opcional)">
+<div class="insight-media-row">
+  <div class="record-box">
+    <b>Fotos</b><div class="hint">Envie uma ou várias imagens do celular.</div>
+    <input id="iPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple capture="environment">
+    <div id="iPhotoPreview" class="capture-preview"></div>
+  </div>
+  <div class="record-box">
+    <b>Áudio</b><div id="iAudioStatus" class="hint">Grave uma nota de voz diretamente aqui.</div>
+    <div class="toolbar" style="margin-top:8px">
+      <button type="button" class="btn ghost" id="recordAudioBtn" onclick="startInsightRecording()">● Gravar</button>
+      <button type="button" class="btn ghost" id="stopAudioBtn" onclick="stopInsightRecording()" disabled>■ Parar</button>
+    </div>
+    <audio id="iAudioPreview" controls style="width:100%;margin-top:8px;display:none"></audio>
+  </div>
+</div>
+<select id="iSource"><option>Trabalho</option><option>REFRIFLOW</option><option>Estudo</option><option>Notícia</option><option>Dia a dia</option><option>Outro</option></select>
+<button class="btn" id="saveInsightBtn" onclick="saveInsight()">Salvar no Inbox</button>
+</div></div></div>
 
 <div class="modal" id="editorModal"><div class="card"><div class="top"><div><h2>Editor de Conteúdo</h2><div class="muted">Transforme a pauta em uma peça pronta para aprovação.</div></div><button class="btn ghost" onclick="closeEditor()">Fechar</button></div>
 <div class="form editor-grid">
@@ -116,5 +141,5 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
 </div></div></div>
 
 <div class="modal" id="authModal"><div class="card"><div class="top"><div><h2>Conta LIFE OS</h2><div class="muted">Acesso restrito ao LIFE OS.</div></div><button class="btn ghost" onclick="closeAuth()">Fechar</button></div><div class="form"><input id="authEmail" type="email" placeholder="seu@email.com"><input id="authPassword" type="password" placeholder="Senha"><div class="toolbar"><button class="btn" onclick="signIn()">Entrar</button><button id="logoutBtn" class="btn danger" style="display:none" onclick="signOut()">Sair</button></div></div></div></div>
-<script src="config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=0.13.1"></script>
+<script src="config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=0.14"></script>
 </body></html>
