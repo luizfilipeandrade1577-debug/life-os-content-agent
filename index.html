@@ -1,5 +1,5 @@
 <!doctype html><html lang="pt-BR"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LIFE OS — Content Agent</title>
 <style>
 :root{--bg:#070b12;--panel:#0d1420;--panel2:#111b2a;--text:#eef5ff;--muted:#8493a7;--blue:#1687ff;--line:#1d2b3e}
@@ -89,7 +89,7 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
 </style></head><body>
 <div id="loginGate" class="login-gate"><div class="login-box"><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.15</div><h1>Bem-vindo</h1><p>Entre para acessar seu Dashboard, insights, conteúdos, aprovações e calendário. Seus dados ficam sincronizados no Supabase.</p><button class="btn" onclick="openAuth()">Entrar no LIFE OS</button></div></div>
 <div id="appShell" class="app auth-hidden">
-<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.15</div><div class="toolbar" style="margin-bottom:14px"><a class="btn ghost active" href="./index.html">Instagram</a><a class="btn ghost" href="./treinos.html">Treinos</a><a class="btn ghost" href="./estudos.html">Estudos</a></div><nav id="nav"></nav><div class="statusbar"><span id="dbState" class="badge">LOCAL</span><span id="dbHint" class="muted">Carregando...</span></div></aside>
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.15</div><div class="toolbar" style="margin-bottom:14px"><a class="btn ghost active" href="./index.html" onclick="lifeNav(event,'./index.html')">Instagram</a><a class="btn ghost" href="./treinos.html" onclick="lifeNav(event,'./treinos.html')">Treinos</a><a class="btn ghost" href="./estudos.html" onclick="lifeNav(event,'./estudos.html')">Estudos</a></div><nav id="nav"></nav><div class="statusbar"><span id="dbState" class="badge">LOCAL</span><span id="dbHint" class="muted">Carregando...</span></div></aside>
 <main><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="desc">Visão geral do seu sistema de conteúdo.</div></div><div class="account"><span id="authInfo" class="muted">Sem login</span><button id="authBtn" class="btn ghost" onclick="openAuth()">Entrar</button><button class="btn" onclick="openInsight()">+ Novo insight</button></div></div>
 <section id="dashboard" class="section active"><div class="grid" id="metrics"></div><div class="two"><div class="card"><h3>Fila de produção</h3><div class="list" id="queue"></div></div><div class="card"><h3>Próximos passos</h3><div class="list"><div class="item"><span>Capturar novos insights</span><span class="badge">INBOX</span></div><div class="item"><span>Gerar e revisar conteúdo</span><span class="badge">EDITOR</span></div><div class="item"><span>Conectar Instagram API</span><span class="badge">ETAPA 2</span></div></div></div></div></section>
 <section id="insights" class="section"><div class="card"><h3>Inbox de Insights</h3><div class="list" id="insightList"></div></div></section>
@@ -142,4 +142,8 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
 
 <div class="modal" id="authModal"><div class="card"><div class="top"><div><h2>Conta LIFE OS</h2><div class="muted">Acesso restrito ao LIFE OS.</div></div><button class="btn ghost" onclick="closeAuth()">Fechar</button></div><div class="form"><input id="authEmail" type="email" placeholder="seu@email.com"><input id="authPassword" type="password" placeholder="Senha"><div class="toolbar"><button class="btn" onclick="signIn()">Entrar</button><button id="logoutBtn" class="btn danger" style="display:none" onclick="signOut()">Sair</button></div></div></div></div>
 <script src="config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=0.15"></script>
-</body></html>
+<script>
+const LIFE_OS_BUILD="20260919-2252";
+function lifeNav(e,path){e.preventDefault();location.href=path+"?b="+LIFE_OS_BUILD}
+if(location.search.includes("b=")){history.replaceState(null,"",location.pathname)}
+</script></body></html>
