@@ -254,3 +254,4 @@ async function loadHistory(){
  studyHistory.innerHTML=(s||[]).length?(s||[]).map(x=>'<div class="lesson"><b>'+new Date(x.started_at).toLocaleString("pt-BR")+'</b><div class="muted">Pontuação: '+Number(x.score||0).toFixed(0)+'%</div></div>').join(""):'<div class="muted">Nenhuma sessão concluída ainda.</div>';
 }
 auth();
+// pages-rebuild: 2026-09-20T00:20-03:00
