@@ -37,7 +37,7 @@ function renderRoutines(){
 async function selectRoutine(id){
  selected=id;renderRoutines();const r=routines.find(x=>x.id===id);routineTitle.textContent=r.name;routineDay.textContent=DAYS[r.day_of_week];
  const {data:e}=await sb.from("training_exercises").select("*").eq("routine_id",id).order("position");
- exerciseList.innerHTML=(e||[]).map(x=>`<div class="exercise"><div><b>${x.exercise_name}</b><div class="muted">${x.sets} séries</div><a class="demo" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=${encodeURIComponent(x.exercise_name+" exercise form")}">▶ Ver demonstração</a></div><div class="reps">${(x.reps||[]).join(" / ")} reps</div></div>`).join("");
+ exerciseList.innerHTML=(e||[]).map(x=>`<div class="exercise"><div><b>${x.exercise_name}</b><div class="muted">${x.sets} séries</div><button class="demo" style="background:none;border:0;padding:0;cursor:pointer" onclick="openExerciseDemo(\'${encodeURIComponent(x.exercise_name)}\')">▶ Ver demonstração</button></div><div class="reps">${(x.reps||[]).join(" / ")} reps</div></div>`).join("");
 }
 startBtn.onclick=startWorkout;
 async function checkOpenSession(){const {data:s}=await sb.from("training_sessions").select("*").is("finished_at",null).order("started_at",{ascending:false}).limit(1);pendingSession=s&&s[0]?s[0]:null;if(!pendingSession){if(document.getElementById("resumeCard"))resumeCard.style.display="none";return}const r=routines.find(x=>x.id===pendingSession.routine_id);if(document.getElementById("resumeCard"))resumeCard.style.display="block";if(document.getElementById("resumeText"))resumeText.textContent=(r?r.name:"Treino")+" • iniciado "+new Date(pendingSession.started_at).toLocaleString("pt-BR");}
@@ -86,7 +86,7 @@ async function buildWorkout(session,routineId){
  const prevMap={};for(const p of previous){const k=p.exercise_id+"_"+p.set_number;if(prevMap[k]===undefined)prevMap[k]=p;}
  const curMap={};for(const c of current){curMap[c.exercise_id+"_"+c.set_number]=c;}
  workoutTitle.textContent=r?r.name:"Treino";
- workoutExercises.innerHTML=activeExercises.map(ex=>{const targets=ex.reps||[];const rows=Array.from({length:ex.sets},(_,i)=>{const p=prevMap[ex.id+"_"+(i+1)],c=curMap[ex.id+"_"+(i+1)];return "<div class=\"set-row\" data-ex=\""+ex.id+"\" data-set=\""+(i+1)+"\"><b>"+(i+1)+"</b><span class=\"muted\">"+(p&&p.weight_kg!=null?p.weight_kg:"—")+"</span><input class=\"kg\" inputmode=\"decimal\" placeholder=\"kg\" value=\""+(c&&c.weight_kg!=null?c.weight_kg:(p&&p.weight_kg!=null?p.weight_kg:""))+"\"><input class=\"rp\" inputmode=\"numeric\" placeholder=\""+(targets[i]||"")+"\" value=\""+(c&&c.reps!=null?c.reps:"")+"\"><button class=\"check "+(c&&c.completed?"done":"")+"\" onclick=\"toggleSet(this)\">✓</button></div>";}).join("");return "<div class=\"work-ex\"><div class=\"top\" style=\"margin-bottom:8px\"><div><h3 style=\"margin:0\">"+ex.exercise_name+"</h3><div class=\"muted\">Alvo: "+targets.join(" / ")+" reps</div><div class=\"progression\">"+progressionText(ex,prevMap)+"</div></div><a class=\"demo\" target=\"_blank\" rel=\"noopener\" href=\"https://www.youtube.com/results?search_query="+encodeURIComponent(ex.exercise_name+" exercise form")+"\">▶ Demonstração</a></div><div class=\"set-head\"><span>Série</span><span>Anterior</span><span>Kg</span><span>Reps</span><span>Feita</span></div>"+rows+"</div>";}).join("");
+ workoutExercises.innerHTML=activeExercises.map(ex=>{const targets=ex.reps||[];const rows=Array.from({length:ex.sets},(_,i)=>{const p=prevMap[ex.id+"_"+(i+1)],c=curMap[ex.id+"_"+(i+1)];return "<div class=\"set-row\" data-ex=\""+ex.id+"\" data-set=\""+(i+1)+"\"><b>"+(i+1)+"</b><span class=\"muted\">"+(p&&p.weight_kg!=null?p.weight_kg:"—")+"</span><input class=\"kg\" inputmode=\"decimal\" placeholder=\"kg\" value=\""+(c&&c.weight_kg!=null?c.weight_kg:(p&&p.weight_kg!=null?p.weight_kg:""))+"\"><input class=\"rp\" inputmode=\"numeric\" placeholder=\""+(targets[i]||"")+"\" value=\""+(c&&c.reps!=null?c.reps:"")+"\"><button class=\"check "+(c&&c.completed?"done":"")+"\" onclick=\"toggleSet(this)\">✓</button></div>";}).join("");return "<div class=\"work-ex\"><div class=\"top\" style=\"margin-bottom:8px\"><div><h3 style=\"margin:0\">"+ex.exercise_name+"</h3><div class=\"muted\">Alvo: "+targets.join(" / ")+" reps</div><div class=\"progression\">"+progressionText(ex,prevMap)+"</div></div><button class=\"demo\" style=\"background:none;border:0;padding:0;cursor:pointer\" data-demo=\""+encodeURIComponent(ex.exercise_name)+"\" onclick=\"openExerciseDemo(this.dataset.demo)\">▶ Demonstração</button></div><div class=\"set-head\"><span>Série</span><span>Anterior</span><span>Kg</span><span>Reps</span><span>Feita</span></div>"+rows+"</div>";}).join("");
  bindAutosave();workoutModal.classList.add("open");workoutModal.scrollTop=0;startTimer();
 }
 async function startWorkout(){if(!selected)return;const {data:open}=await sb.from("training_sessions").select("*").is("finished_at",null).order("started_at",{ascending:false}).limit(1);if(open&&open[0]){pendingSession=open[0];return resumeWorkout(open[0]);}const {data:s,error}=await sb.from("training_sessions").insert({user_id:user.id,routine_id:selected}).select().single();if(error)return alert(error.message);await buildWorkout(s,selected);await checkOpenSession();}
@@ -100,4 +100,45 @@ if(document.getElementById("rest60"))rest60.onclick=()=>startRest(60);if(documen
 function startTimer(){clearInterval(timerId);const tick=()=>{const sec=Math.max(0,Math.floor((Date.now()-startedAt.getTime())/1000));timer.textContent=String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0");};tick();timerId=setInterval(tick,1000);}
 if(document.getElementById("closeWorkoutBtn"))closeWorkoutBtn.onclick=async()=>{document.querySelectorAll(".set-row").forEach(r=>saveRowDraft(r));workoutModal.classList.remove("open");await checkOpenSession();};
 if(document.getElementById("finishWorkoutBtn"))finishWorkoutBtn.onclick=async()=>{if(!activeSession)return;const doneRows=document.querySelectorAll(".set-row .check.done").length;if(doneRows===0)return alert("Registre pelo menos uma série.");const {error}=await sb.from("training_sessions").update({finished_at:new Date().toISOString()}).eq("id",activeSession.id);if(error)return alert(error.message);clearInterval(timerId);stopRest();activeSession=null;pendingSession=null;workoutModal.classList.remove("open");await loadDashboard();await checkOpenSession();alert("Salvo LIFE OS GYM");};
+
+function cleanHtmlText(v=""){const d=document.createElement("div");d.innerHTML=v;return d.textContent||d.innerText||"";}
+function scoreExerciseName(name,query){name=(name||"").toLowerCase();query=(query||"").toLowerCase();if(name===query)return 100;if(name.includes(query)||query.includes(name))return 80;const q=query.split(/\s+/).filter(Boolean);return q.reduce((s,w)=>s+(name.includes(w)?10:0),0);}
+window.openExerciseDemo=async encodedName=>{
+ const exerciseName=decodeURIComponent(encodedName);
+ demoTitle.textContent=exerciseName;
+ demoSubtitle.textContent="Demonstração dentro do LIFE OS GYM";
+ demoMedia.innerHTML='<div class="demo-empty">Carregando demonstração...</div>';
+ demoSteps.innerHTML="";
+ exerciseDemoModal.classList.add("open");
+ try{
+  const res=await fetch("https://wger.de/api/v2/exerciseinfo/?limit=20&name__search="+encodeURIComponent(exerciseName));
+  if(!res.ok)throw new Error("Falha");
+  const json=await res.json();
+  const ranked=(json.results||[]).map(item=>{const names=(item.translations||[]).map(t=>t.name).filter(Boolean);return {item,best:Math.max(0,...names.map(n=>scoreExerciseName(n,exerciseName)))};}).sort((a,b)=>b.best-a.best);
+  if(!ranked[0]||ranked[0].best<10)throw new Error("Sem mídia");
+  const item=ranked[0].item;
+  const video=(item.videos||[])[0];
+  const image=(item.images||[]).find(i=>i.is_main)||(item.images||[])[0];
+  let media="";
+  if(video){const src=video.video||video.file||video.url||video.video_url;if(src)media='<video controls playsinline preload="metadata" src="'+src+'"></video>';}
+  if(!media&&image){const src=image.image||image.url||(image.thumbnails&&image.thumbnails.medium)||(image.thumbnails&&image.thumbnails.small);if(src)media='<img alt="'+exerciseName+'" src="'+src+'">';}
+  demoMedia.innerHTML=media||'<div class="demo-empty">Este exercício ainda não tem vídeo/imagem disponível na biblioteca.</div>';
+  const tr=(item.translations||[]).find(t=>String(t.language)=="2")||(item.translations||[])[0];
+  const desc=cleanHtmlText((tr&&tr.description)||"");
+  demoSteps.innerHTML=desc?'<h3>Como executar</h3><p>'+desc.replace(/\n+/g,"<br>")+'</p>':'<div class="muted">Sem instruções textuais disponíveis.</div>';
+ }catch(err){
+  demoMedia.innerHTML='<div class="demo-empty">Não encontrei mídia interna para este exercício ainda.</div>';
+  demoSteps.innerHTML="";
+ }
+};
+if(document.getElementById("closeDemoBtn"))closeDemoBtn.onclick=()=>exerciseDemoModal.classList.remove("open");
+if(document.getElementById("cancelWorkoutBtn"))cancelWorkoutBtn.onclick=async()=>{
+ if(!activeSession)return;
+ if(!confirm("Cancelar este treino? Os registros desta sessão serão apagados."))return;
+ await sb.from("training_sets").delete().eq("session_id",activeSession.id);
+ const {error}=await sb.from("training_sessions").delete().eq("id",activeSession.id);
+ if(error)return alert(error.message);
+ clearInterval(timerId);stopRest();activeSession=null;pendingSession=null;workoutModal.classList.remove("open");await loadDashboard();await checkOpenSession();alert("Treino cancelado");
+};
+
 auth();
