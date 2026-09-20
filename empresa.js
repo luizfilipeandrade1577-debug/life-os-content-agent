@@ -1,6 +1,6 @@
 const cfg=window.LIFE_OS_CONFIG;
 const sb=supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey);
-let user=null,agents=[],tasks=[],approvals=[],events=[],leads=[],memories=[],projects=[],selectedSector="direcao";
+let user=null,agents=[],tasks=[],approvals=[],events=[],leads=[],memories=[],projects=[],channels=[],agentChannels=[],contacts=[],selectedSector="direcao";
 
 const SECTORS={
  direcao:{title:"Direção & Estratégia",desc:"Prioridades, decisões, visão e coordenação dos agentes."},
@@ -13,15 +13,15 @@ const SECTORS={
 
 const DEFAULT_AGENTS=[
  ["CEO Copilot","Direção estratégica","direcao","Organiza prioridades, sintetiza dados e prepara decisões."],
- ["SDR AI","Prospecção & Pesquisa","comercial","Pesquisa empresas, decisores, sinais de dor e oportunidades."],
- ["Sales AI","Qualificação & Vendas","comercial","Estrutura diagnóstico, qualificação e próximos passos comerciais."],
- ["Proposal AI","Propostas & Orçamentos","comercial","Transforma diagnóstico em escopo, proposta e condições comerciais."],
+ ["SDR AI","Prospecção & Pesquisa","comercial","Pesquisa empresas e decisores, prepara prospecção via WhatsApp e organiza novos leads."],
+ ["Sales AI","Qualificação & Vendas","comercial","Atende contatos, qualifica oportunidades, conduz follow-ups e organiza próximos passos comerciais."],
+ ["Proposal AI","Propostas & Orçamentos","comercial","Transforma diagnósticos qualificados em escopo, proposta e condições comerciais."],
  ["Process Analyst","Analista de Processos","operacoes","Mapeia perda de dados, gargalos e oportunidades de automação."],
  ["Project Manager AI","Gestor de Projetos","operacoes","Organiza entregas, prioridades, riscos e acompanhamento."],
  ["Builder AI","Automação & Sistemas","operacoes","Executa especificações de sistemas, agentes, integrações e automações."],
  ["Finance AI","Financeiro","financeiro","Acompanha caixa, cobranças, custos, margem e recorrência."],
- ["CS AI","Customer Success","cs","Acompanha clientes, pendências, satisfação e oportunidades de expansão."],
- ["Content AI","Marketing & Conteúdo","marketing","Transforma projetos, aprendizados e cases em conteúdo e demanda."]
+ ["CS AI","Customer Success","cs","Atende clientes, acompanha pendências, responde contatos e identifica oportunidades de expansão."],
+ ["Content AI","Marketing & Conteúdo","marketing","Opera o Instagram: pauta, posts, stories, reels, CTAs e geração de demanda para o comercial."]
 ];
 
 async function auth(){
@@ -57,23 +57,76 @@ async function seedKnowledge(){
  }
 }
 
+async function seedChannels(){
+ const {data:ig}=await sb.from("instagram_integrations").select("username,ig_user_id").eq("user_id",user.id).maybeSingle();
+ await sb.from("business_channels").upsert([
+  {user_id:user.id,channel:"instagram",label:"Instagram",status:ig?"connected":"pending",external_ref:ig?.username||null,metadata:{role:"marketing_sales"}},
+  {user_id:user.id,channel:"whatsapp",label:"WhatsApp Business",status:"pending",metadata:{role:"prospecting_service"}}
+ ],{onConflict:"user_id,channel"});
+ const {data:allAgents}=await sb.from("business_agents").select("id,name").eq("user_id",user.id);
+ const byName=Object.fromEntries((allAgents||[]).map(a=>[a.name,a.id]));
+ const mappings=[];
+ const add=(name,channel,capability,execute=false,approval=true)=>{if(byName[name])mappings.push({user_id:user.id,agent_id:byName[name],channel,capability,can_prepare:true,can_execute:execute,requires_approval:approval})};
+ add("Content AI","instagram","Criar posts, stories, reels e CTAs");
+ add("Content AI","instagram","Preparar publicação aprovada",true,true);
+ add("SDR AI","whatsapp","Preparar prospecção outbound");
+ add("SDR AI","instagram","Transformar interações em leads");
+ add("Sales AI","whatsapp","Responder e qualificar oportunidades");
+ add("Sales AI","instagram","Responder contatos comerciais");
+ add("Proposal AI","whatsapp","Enviar proposta após aprovação");
+ add("CS AI","whatsapp","Atendimento e follow-up de clientes");
+ add("CS AI","instagram","Atendimento de clientes e directs");
+ if(mappings.length)await sb.from("business_agent_channels").upsert(mappings,{onConflict:"agent_id,channel,capability"});
+}
+
 async function boot(){
  gate.style.display="none";shell.style.display="grid";
- await seedAgents();await seedKnowledge();wireBrain();await refreshAll();selectSector("direcao");
+ await seedAgents();await seedKnowledge();await seedChannels();wireBrain();await refreshAll();selectSector("direcao");
 }
 
 async function refreshAll(){
- const [t,a,e,l,g,m,p]=await Promise.all([
+ const [t,a,e,l,g,m,p,ch,ac,ct]=await Promise.all([
   sb.from("business_tasks").select("*").order("created_at",{ascending:false}).limit(50),
   sb.from("business_approvals").select("*").order("created_at",{ascending:false}).limit(30),
   sb.from("business_events").select("*").order("created_at",{ascending:false}).limit(30),
   sb.from("business_leads").select("*").order("created_at",{ascending:false}).limit(100),
   sb.from("business_agents").select("*").order("sort_order"),
   sb.from("business_memory").select("*").order("importance",{ascending:false}).order("updated_at",{ascending:false}).limit(50),
-  sb.from("business_projects").select("*").order("updated_at",{ascending:false}).limit(30)
+  sb.from("business_projects").select("*").order("updated_at",{ascending:false}).limit(30),
+  sb.from("business_channels").select("*").order("channel"),
+  sb.from("business_agent_channels").select("*"),
+  sb.from("business_contacts").select("*").order("updated_at",{ascending:false}).limit(30)
  ]);
- tasks=t.data||[];approvals=a.data||[];events=e.data||[];leads=l.data||[];agents=g.data||agents;memories=m.data||[];projects=p.data||[];
- renderMetrics();renderTasks();renderApprovals();renderEvents();renderAgents();renderMemories();renderProjects();fillAgentSelect();fillProjectSelect();
+ tasks=t.data||[];approvals=a.data||[];events=e.data||[];leads=l.data||[];agents=g.data||agents;memories=m.data||[];projects=p.data||[];channels=ch.data||[];agentChannels=ac.data||[];contacts=ct.data||[];
+ renderMetrics();renderTasks();renderApprovals();renderEvents();renderAgents();renderMemories();renderProjects();renderChannels();renderChannelAgents();renderContacts();fillAgentSelect();fillProjectSelect();
+}
+
+function renderChannels(){
+ if(!window.channelList)return;
+ channelList.innerHTML=channels.length?channels.map(c=>{
+  const connected=c.status==="connected";
+  const label=c.channel==="instagram"?(c.external_ref?"@"+c.external_ref:"Instagram"):c.label;
+  const desc=c.channel==="instagram"?"Conteúdo, directs, leads e publicação":"Prospecção, atendimento, follow-up e propostas";
+  return '<div class="agent"><div class="agent-head"><div><div class="agent-role">'+escapeHtml(label)+'</div><div class="muted">'+desc+'</div></div><span class="badge '+(connected?"ok":"wait")+'">'+(connected?"CONECTADO":"PENDENTE")+'</span></div></div>';
+ }).join(""):'<div class="muted">Nenhum canal configurado.</div>';
+}
+function renderChannelAgents(){
+ if(!window.channelAgentList)return;
+ const names=["Content AI","SDR AI","Sales AI","Proposal AI","CS AI"];
+ channelAgentList.innerHTML=names.map(name=>{
+  const ag=agents.find(a=>a.name===name);if(!ag)return "";
+  const caps=agentChannels.filter(x=>x.agent_id===ag.id);
+  return '<div class="agent"><div class="agent-role">'+name+'</div><div class="muted">'+caps.map(x=>'<span class="badge" style="display:inline-block;margin:5px 5px 0 0">'+x.channel.toUpperCase()+': '+escapeHtml(x.capability)+'</span>').join("")+'</div></div>';
+ }).join("");
+}
+function renderContacts(){
+ if(!window.contactList)return;
+ contactList.innerHTML=contacts.length?contacts.slice(0,10).map(c=>{
+   const ag=agents.find(a=>a.id===c.owner_agent_id);
+   const who=escapeHtml(c.name||c.company_name||"Contato");
+   const channel=c.whatsapp_phone?"WHATSAPP":c.instagram_handle?"INSTAGRAM":(c.source||"LEAD").toUpperCase();
+   return '<div class="agent"><div class="agent-head"><div><div class="agent-role">'+who+'</div><div class="muted">'+escapeHtml(c.company_name||"")+(ag?" • "+ag.name:"")+'</div></div><span class="badge">'+channel+'</span></div><div class="muted" style="margin-top:6px">Status: '+escapeHtml(c.status||"new")+'</div></div>';
+ }).join(""):'<div class="muted">Os novos contatos de Instagram, WhatsApp e prospecção aparecerão aqui.</div>';
 }
 
 function renderMetrics(){
