@@ -45,6 +45,22 @@ function renderQuestion(){
  checkBtn.onclick=checkAnswer;
 }
 function normalize(s){return (s||"").trim().toLowerCase().replace(/[?.!,]/g,"").replace(/’/g,"'").replace(/\s+/g," ")}
+function validatePersonal(q,ans){
+ const n=normalize(ans);
+ const rules={
+  p35_q1:{ok:/^i was born in\s+.+/.test(n),msg:'Use a preposição: “I was born in Brazil.”'},
+  p35_q2:{ok:/^i was born (on|in)\s+.+/.test(n),msg:'Use: “I was born on...” para uma data ou “I was born in...” para mês/ano.'},
+  p35_q3:{ok:/^i was born in\s+(19|20)\d{2}$/.test(n),msg:'Use a frase completa, por exemplo: “I was born in 2003.”'},
+  p35_q4:{ok:/^i was\s+.+/.test(n),msg:'Comece com “I was...” e descreva como você era.'},
+  p35_q5:{ok:/^i was\s+\d+\s+years? old$/.test(n),msg:'Use: “I was ... years old.”'},
+  p37_q1:{ok:/^i studied (at|in)\s+.+/.test(n),msg:'Use uma frase completa, por exemplo: “I studied at Cotuca.”'},
+  p37_q2:{ok:/^(my school|it) was\s+.+/.test(n),msg:'Use “My school was...” ou “It was...” + adjetivo.'},
+  p37_q5:{ok:/^my favorite teacher was\s+.+/.test(n),msg:'Use: “My favorite teacher was ...”'},
+  p37_q9:{ok:/^my favorite subject was\s+.+/.test(n),msg:'Use: “My favorite subject was ...”'},
+  p38_q1:{ok:/^i was (at|in|on)\s+.+/.test(n),msg:'Use: “I was at/in...” + lugar.'}
+ };
+ return rules[q.key]||{ok:/\b(was|were|did|studied)\b/.test(n),msg:"Tente responder usando a estrutura no passado pedida pela questão."};
+}
 async function checkAnswer(){
  const q=questions[currentIndex],ans=answerBox.value.trim();if(!ans)return alert("Digite sua resposta.");
  let correct=null,feedback="";
@@ -57,14 +73,18 @@ async function checkAnswer(){
   correct=expected.every((x,i)=>parts[i]===x);
   feedback=correct?"Correto.":"Use “were” nas duas lacunas.";
  }else{
-  const n=normalize(ans);
-  const hasPast=/\b(was|were|did|studied)\b/.test(n);
-  correct=hasPast;
-  feedback=hasPast?"Boa estrutura. Resposta salva para sua revisão.":"Tente responder usando a estrutura no passado pedida pela questão.";
+  const result=validatePersonal(q,ans);
+  correct=result.ok;
+  feedback=correct?"Correto. Boa estrutura. Resposta salva para sua revisão.":result.msg;
  }
  const payload={user_id:user.id,session_id:currentSession.id,question_key:q.key,prompt:q.prompt,answer:ans,is_correct:correct,feedback};
  await sb.from("study_answers").upsert(payload,{onConflict:"session_id,question_key"});
  feedbackBox.innerHTML='<div class="feedback '+(correct?"good":"fix")+'">'+feedback+'</div>';
+ if(!correct){
+   checkBtn.textContent="Tentar novamente";
+   checkBtn.onclick=()=>{feedbackBox.innerHTML="";checkBtn.textContent="Corrigir";checkBtn.onclick=checkAnswer;answerBox.focus();};
+   return;
+ }
  checkBtn.textContent=currentIndex===questions.length-1?"Finalizar":"Próxima";
  checkBtn.onclick=async()=>{if(currentIndex<questions.length-1){currentIndex++;renderQuestion()}else await finishStudy()};
 }
