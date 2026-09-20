@@ -104,26 +104,16 @@ if(document.getElementById("finishWorkoutBtn"))finishWorkoutBtn.onclick=async()=
 function cleanHtmlText(v=""){const d=document.createElement("div");d.innerHTML=v;return d.textContent||d.innerText||"";}
 function scoreExerciseName(name,query){name=(name||"").toLowerCase();query=(query||"").toLowerCase();if(name===query)return 100;if(name.includes(query)||query.includes(name))return 80;const q=query.split(/\s+/).filter(Boolean);return q.reduce((s,w)=>s+(name.includes(w)?10:0),0);}
 const CURATED_DEMOS={
- "Dumbbell Incline Press":{id:"LwHoNk-sjgs",creator:"Jeff Nippard",title:"Science-Based Push Workout",start:0},
- "Cable Incline Fly":{id:"LwHoNk-sjgs",creator:"Jeff Nippard",title:"Science-Based Push Workout",start:0},
- "Chest Fly Machine":{id:"s43pV7vCqMM",creator:"Renaissance Periodization",title:"Mass Gain Training — Chest",start:0},
- "Shoulder Press Machine":{id:"RtRWO8vrZZA",creator:"Renaissance Periodization",title:"Shoulder Press Technique",start:681},
- "Cable Lateral Raise":{id:"lq7eLC30b9w",creator:"Renaissance Periodization",title:"Leaning Cable Lateral Raise",start:0},
- "Cable Tricep Extension":{id:"LwHoNk-sjgs",creator:"Jeff Nippard",title:"Science-Based Push Workout",start:0},
- "Cable Overhead Tricep Extension":{id:"LwHoNk-sjgs",creator:"Jeff Nippard",title:"Science-Based Push Workout",start:0},
- "Barbell Back Squat":{id:"jf9PBwwNAMs",creator:"Jeff Nippard",title:"Best Scientific Leg Workout",start:0},
- "Leg Press Machine":{id:"P8TfK9wmFVo",creator:"Renaissance Periodization",title:"How to Leg Press for BEST Growth",start:0},
- "Leg Extension Machine":{id:"jf9PBwwNAMs",creator:"Jeff Nippard",title:"Best Scientific Leg Workout",start:0},
- "Barbell Romanian Deadlift":{id:"5bJEigM5iVg",creator:"Squat University",title:"Ultimate Romanian Deadlift Tutorial",start:0},
- "Seated Leg Curl Machine":{id:"jf9PBwwNAMs",creator:"Jeff Nippard",title:"Best Scientific Leg Workout",start:0},
- "Seated Calf Raise Machine":{id:"hRZ5MM6gmlE",creator:"Jeff Nippard",title:"Leg Workout — Calves & Lower Body",start:651},
- "Cable Lat Pulldown":{id:"KV4D8MQrdhw",creator:"Jeff Nippard",title:"Best Scientific Pull Workout",start:0},
- "Dumbbell Chest Supported Row":{id:"KV4D8MQrdhw",creator:"Jeff Nippard",title:"Best Scientific Pull Workout",start:0},
- "Cable Row":{id:"KV4D8MQrdhw",creator:"Jeff Nippard",title:"Best Scientific Pull Workout",start:0},
- "Cable Face Pull":{id:"KV4D8MQrdhw",creator:"Jeff Nippard",title:"Best Scientific Pull Workout",start:0},
- "Dumbbell Bicep Curl":{id:"_GziHDdJY10",creator:"Jeff Nippard",title:"3 Biceps Exercises",start:0},
- "Hammer Curl":{id:"_GziHDdJY10",creator:"Jeff Nippard",title:"3 Biceps Exercises",start:0},
- "Hip Thrust":{id:"jf9PBwwNAMs",creator:"Jeff Nippard",title:"Best Scientific Leg Workout",start:0}
+ "Dumbbell Incline Press":{id:"5CECBjd7HLQ",creator:"Renaissance Periodization",title:"Incline Dumbbell Press"},
+ "Shoulder Press Machine":{id:"WvLMauqrnK8",creator:"Renaissance Periodization",title:"Machine Shoulder Press"},
+ "Cable Lateral Raise":{id:"lq7eLC30b9w",creator:"Renaissance Periodization",title:"Leaning Cable Lateral Raise"},
+ "Barbell Back Squat":{id:"PPmvh7gBTi0",creator:"Jeff Nippard",title:"Do You Have A Perfect Squat?"},
+ "Leg Press Machine":{id:"nDh_BlnLCGc",creator:"Jeff Nippard",title:"How To Leg Press With Perfect Technique"},
+ "Leg Extension Machine":{id:"m0FOpMEgero",creator:"Renaissance Periodization",title:"Leg Extension"},
+ "Seated Leg Curl Machine":{id:"Orxowest56U",creator:"Renaissance Periodization",title:"Seated Leg Curl"},
+ "Cable Lat Pulldown":{id:"PEiIOW7HGnA",creator:"Jeff Nippard",title:"Lat Pulldown Technique"},
+ "Dumbbell Chest Supported Row":{id:"0UBRfiO4zDs",creator:"Renaissance Periodization",title:"Chest Supported Row"},
+ "Cable Row":{id:"UCXxvVItLoM",creator:"Renaissance Periodization",title:"Seated Cable Row"}
 };
 window.openExerciseDemo=async encodedName=>{
  const exerciseName=decodeURIComponent(encodedName);
@@ -134,9 +124,8 @@ window.openExerciseDemo=async encodedName=>{
  exerciseDemoModal.classList.add("open");
  const curated=CURATED_DEMOS[exerciseName];
  if(curated){
-   const clipStart=Number(curated.start||0);const clipEnd=clipStart+55;
-   demoMedia.innerHTML='<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="https://www.youtube-nocookie.com/embed/'+curated.id+'?rel=0&start='+clipStart+'&end='+clipEnd+'"></iframe>';
-   demoSteps.innerHTML='<h3>'+curated.creator+'</h3><p class="muted">Demonstração rápida • até 55 segundos</p><p>Trecho curto selecionado para mostrar somente a execução do movimento.</p>';
+   demoMedia.innerHTML='<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="https://www.youtube-nocookie.com/embed/'+curated.id+'?rel=0&controls=1&playsinline=1"></iframe>';
+   demoSteps.innerHTML='<h3>'+curated.creator+'</h3><p class="muted">'+curated.title+'</p><p>Demonstração curta selecionada especificamente para este exercício.</p>';
    return;
  }
  try{
