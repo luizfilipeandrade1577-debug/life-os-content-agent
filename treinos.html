@@ -17,10 +17,57 @@ main{padding:28px;max-width:1200px;width:100%}.top{display:flex;justify-content:
 @media(max-width:900px){.app{grid-template-columns:1fr}aside{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}main{padding:18px}.grid{grid-template-columns:repeat(2,1fr)}}
 .weightrow{display:flex;gap:8px}.weightrow input{width:110px;background:#08101a;border:1px solid var(--line);color:#fff;border-radius:8px;padding:9px}.modal{position:fixed;inset:0;background:#000c;display:none;align-items:flex-start;justify-content:center;padding:18px;z-index:50;overflow:auto}.modal.open{display:flex}.workout{width:min(880px,100%);background:#090f18;border:1px solid var(--line);border-radius:18px;padding:18px;margin:20px 0}.timer{font-size:26px;font-weight:800;color:#8fc6ff}.work-ex{margin:14px 0;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px}.set-head,.set-row{display:grid;grid-template-columns:46px 90px 90px 90px 54px;gap:8px;align-items:center}.set-head{color:var(--muted);font-size:12px;margin:10px 0}.set-row{margin:8px 0}.set-row input{width:100%;background:#08101a;border:1px solid var(--line);color:#fff;border-radius:8px;padding:9px;text-align:center}.check{width:40px;height:40px;border-radius:9px;border:1px solid var(--line);background:#111b2a;color:#8493a7;cursor:pointer}.check.done{background:#0e2a24;color:#63e1be;border-color:#245c50}.history{display:flex;flex-direction:column;gap:8px}.history .item{padding:10px;border:1px solid var(--line);border-radius:9px;background:#09111b}
 .demo{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#8fc6ff;font-size:12px;font-weight:700}.restbar{position:sticky;top:0;z-index:5;display:none;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin:-2px 0 14px;background:#10243e;border:1px solid #21476c;border-radius:12px}.restbar.show{display:flex}.resttime{font-size:24px;font-weight:800;color:#8fc6ff}.progression{margin-top:6px;color:#63e1be;font-size:12px;font-weight:700}.btn.small{padding:7px 10px;font-size:12px}
+
+@media(max-width:700px){
+  body{overflow-x:hidden}
+  .app{display:block}
+  aside{padding:14px 12px;height:auto;position:static}
+  .modules{margin-bottom:12px}
+  main{padding:12px;max-width:none}
+  .top{align-items:flex-start;margin-bottom:14px}
+  .grid{grid-template-columns:1fr 1fr;gap:8px}
+  .routine{padding:12px}
+  .routine h3{margin:10px 0 4px;font-size:16px}
+  .section{margin-top:12px}
+  .card{padding:12px;border-radius:12px}
+  .exercise{grid-template-columns:1fr;gap:6px}
+  .reps{font-size:13px}
+  .modal{padding:0;align-items:stretch;background:#070b12}
+  .workout{width:100%;min-height:100vh;margin:0;border:0;border-radius:0;padding:12px 10px 110px}
+  .workout>.top:first-child{
+    position:sticky;top:0;z-index:10;background:#090f18;
+    margin:-12px -10px 10px;padding:12px 10px;border-bottom:1px solid var(--line)
+  }
+  .timer{font-size:22px}
+  .restbar{top:74px;flex-direction:column;align-items:stretch;padding:10px;margin:0 0 10px}
+  .restbar>div:first-child{display:flex;justify-content:space-between;align-items:center}
+  .restbar .modules{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .restbar .btn{width:100%;padding:8px 4px}
+  .work-ex{padding:12px 10px;margin:10px 0}
+  .work-ex>.top{display:block}
+  .demo{margin-top:8px;font-size:13px}
+  .set-head,.set-row{grid-template-columns:34px 62px minmax(72px,1fr) minmax(72px,1fr) 46px;gap:6px;width:100%}
+  .set-head{font-size:11px}
+  .set-row input{min-width:0;padding:10px 6px;font-size:16px}
+  .check{width:42px;height:42px}
+  #finishWorkoutBtn{width:100%;padding:14px}
+  .workout>.top:last-child{display:block}
+  .workout>.top:last-child .muted{margin-bottom:10px}
+  .weightrow{flex-wrap:wrap}
+  .metric{font-size:24px}
+}
+@media(max-width:430px){
+  .grid{grid-template-columns:1fr}
+  .set-head,.set-row{grid-template-columns:28px 52px minmax(66px,1fr) minmax(66px,1fr) 42px;gap:4px}
+  .set-head span:nth-child(2){font-size:0}
+  .set-head span:nth-child(2)::after{content:"Ant.";font-size:11px}
+  .workout h2{font-size:20px}
+  .work-ex h3{font-size:18px}
+}
 </style></head><body>
-<div id="gate" class="card login"><div class="brand">LIFE <span>OS</span></div><div class="sub">TREINOS • v0.3</div><h1>Treinos</h1><p class="muted">Use o mesmo login do LIFE OS.</p><button class="btn" id="loginBtn">Entrar</button></div>
+<div id="gate" class="card login"><div class="brand">LIFE <span>OS</span></div><div class="sub">TREINOS • v0.3.1</div><h1>Treinos</h1><p class="muted">Use o mesmo login do LIFE OS.</p><button class="btn" id="loginBtn">Entrar</button></div>
 <div id="shell" class="app" style="display:none">
-<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">TREINOS • v0.3</div>
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">TREINOS • v0.3.1</div>
 <div class="modules"><a class="btn ghost" href="./index.html">Instagram</a><a class="btn ghost active" href="./treinos.html">Treinos</a></div>
 <div class="card"><div class="muted">Objetivo</div><b>Ganho de massa</b><div class="muted" style="margin-top:8px">71 kg → meta inicial 75 kg</div></div><div class="card section"><div class="muted">Registrar peso</div><div class="weightrow" style="margin-top:10px"><input id="weightInput" inputmode="decimal" placeholder="kg"><button class="btn" id="saveWeightBtn">Salvar</button></div><div id="weightHint" class="muted" style="margin-top:8px"></div></div>
 </aside>
@@ -34,5 +81,5 @@ main{padding:28px;max-width:1200px;width:100%}.top{display:flex;justify-content:
 <div class="card"><div class="muted">Treinos concluídos</div><div id="completedCount" class="metric">0</div></div>
 </div>
 <div class="section card"><h2>Histórico recente</h2><div id="historyList" class="history"></div></div></main></div><div id="workoutModal" class="modal"><div class="workout"><div class="top"><div><h2 id="workoutTitle">Treino</h2><div class="muted">Registre carga e repetições reais.</div></div><div style="text-align:right"><div id="timer" class="timer">00:00</div><button class="btn ghost" id="closeWorkoutBtn">Fechar</button></div></div><div id="restBar" class="restbar"><div><div class="muted">Descanso</div><div id="restTime" class="resttime">01:30</div></div><div class="modules" style="margin:0"><button class="btn small ghost" id="rest60">60s</button><button class="btn small ghost" id="rest90">90s</button><button class="btn small ghost" id="rest120">120s</button><button class="btn small ghost" id="skipRest">Pular</button></div></div><div id="workoutExercises"></div><div class="top" style="margin-top:18px"><div class="muted">O treino só entra no histórico ao finalizar.</div><button class="btn" id="finishWorkoutBtn">Finalizar treino</button></div></div></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./treinos.js?v=0.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./treinos.js?v=0.3.1"></script>
 </body></html>
