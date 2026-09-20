@@ -1,0 +1,48 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LIFE OS — Nutrição</title>
+<style>
+:root{--bg:#070b12;--panel:#0d1420;--panel2:#111b2a;--text:#eef5ff;--muted:#8493a7;--blue:#1687ff;--line:#1d2b3e;--green:#63e1be;--amber:#ffc46b;--red:#ff9dab}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 5%,#0f223e 0,transparent 28%),var(--bg);color:var(--text);font:14px Inter,system-ui,Arial}button,input,select,textarea{font:inherit}.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}aside{border-right:1px solid var(--line);padding:20px 14px;background:#080d15;position:sticky;top:0;height:100vh}.brand{font-size:20px;font-weight:900}.brand span{color:var(--blue)}.sub,.muted{color:var(--muted)}.sub{font-size:12px;margin:4px 0 18px}.modules{display:grid;gap:7px}.btn{border:0;border-radius:10px;padding:10px 13px;background:var(--blue);color:#fff;font-weight:800;cursor:pointer;text-decoration:none;display:inline-block}.btn.ghost{background:var(--panel2);color:var(--text)}.btn.active{outline:1px solid #4ca5ff}.btn.danger{background:#35131b;color:#ff9dab}main{padding:24px;max-width:1150px;width:100%}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}.top h1{margin:0;font-size:28px}.badge{font-size:11px;padding:5px 8px;border-radius:999px;background:#10243e;color:#8fc6ff}.badge.ok{background:#0e2a24;color:var(--green)}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:rgba(13,20,32,.95);border:1px solid var(--line);border-radius:16px;padding:15px}.metric{font-size:26px;font-weight:900;margin-top:5px}.metric small{font-size:12px;color:var(--muted);font-weight:500}.progress{height:9px;background:#111b2a;border-radius:999px;overflow:hidden;margin-top:9px}.progress>div{height:100%;background:linear-gradient(90deg,#1687ff,#63e1be)}.section{margin-top:12px}.two{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}.meal-list{display:grid;gap:10px}.meal{border:1px solid var(--line);border-radius:13px;background:#09111b;padding:12px}.meal-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.food{padding:9px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}.food:first-of-type{margin-top:8px}.quick{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.quick .btn{padding:8px 10px}.form{display:grid;gap:9px}.form input,.form select,.form textarea{width:100%;background:#08101a;border:1px solid var(--line);color:#fff;border-radius:9px;padding:10px}.form textarea{min-height:80px}.summary-ring{width:132px;height:132px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#1687ff var(--pct,0%),#111b2a 0);margin:auto;position:relative}.summary-ring:after{content:"";position:absolute;inset:12px;border-radius:50%;background:#0d1420}.summary-ring>div{position:relative;z-index:1;text-align:center}.summary-ring b{font-size:26px}.water-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.sticky-add{display:none}.login{max-width:440px;margin:100px auto}.login .card{padding:26px}
+@media(max-width:900px){.app{display:block}aside{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}.modules{display:flex;overflow-x:auto;gap:6px}.modules .btn{flex:0 0 auto}.grid{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}main{padding:12px}}
+@media(max-width:560px){body{padding-bottom:74px}.grid{grid-template-columns:1fr 1fr;gap:8px}.card{padding:12px;border-radius:14px}.metric{font-size:22px}.top{align-items:flex-start;flex-direction:column}.water-actions{grid-template-columns:repeat(3,1fr)}.sticky-add{display:block;position:fixed;left:12px;right:12px;bottom:12px;z-index:40}.sticky-add .btn{width:100%;padding:14px;border-radius:14px;box-shadow:0 12px 30px #0009}.meal-head{align-items:flex-start}.food{font-size:13px}.form input,.form select,.form textarea{font-size:16px}}
+@media(max-width:390px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div id="gate" class="login"><div class="card"><div class="brand">LIFE <span>OS</span></div><div class="sub">NUTRIÇÃO • v0.1</div><h1>Nutrição & Hidratação</h1><p class="muted">Registro rápido, metas do dia e evolução de peso.</p><button class="btn" id="loginBtn">Entrar</button></div></div>
+<div id="shell" class="app" style="display:none">
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">NUTRIÇÃO • v0.1</div>
+<div class="modules"><a class="btn ghost" href="./hoje.html">Hoje</a><a class="btn ghost" href="./index.html">Instagram</a><a class="btn ghost" href="./treinos.html">Treinos</a><a class="btn active" href="./nutricao.html">Nutrição</a><a class="btn ghost" href="./estudos.html">Estudos</a><a class="btn ghost" href="./empresa.html">Empresa</a></div>
+</aside>
+<main>
+<div class="top"><div><h1>Nutrição</h1><div class="muted" id="dateLabel">Hoje</div></div><span class="badge ok">META: GANHO DE MASSA</span></div>
+
+<div class="grid">
+<div class="card"><div class="muted">Calorias</div><div class="metric"><span id="calNow">0</span> / <span id="calTarget">3100</span> <small>kcal</small></div><div class="progress"><div id="calBar"></div></div></div>
+<div class="card"><div class="muted">Proteína</div><div class="metric"><span id="proteinNow">0</span> / <span id="proteinTarget">155</span> <small>g</small></div><div class="progress"><div id="proteinBar"></div></div></div>
+<div class="card"><div class="muted">Água</div><div class="metric"><span id="waterNow">0</span> / <span id="waterTarget">2500</span> <small>ml</small></div><div class="progress"><div id="waterBar"></div></div></div>
+<div class="card"><div class="muted">Peso</div><div class="metric"><span id="weightNow">—</span> <small>kg</small></div><div class="muted">Meta inicial: 75 kg</div></div>
+</div>
+
+<div class="two section">
+<div class="card"><div class="top"><div><h2 style="margin:0">Refeições de hoje</h2><div class="muted">Registro rápido por refeição.</div></div><button class="btn" onclick="openFoodModal()">+ Adicionar</button></div><div id="mealList" class="meal-list"></div></div>
+<div class="card">
+<div class="summary-ring" id="calRing"><div><b id="ringPct">0%</b><div class="muted">calorias</div></div></div>
+<div class="section"><h3>Hidratação</h3><div class="water-actions"><button class="btn ghost" onclick="addWater(250)">+250 ml</button><button class="btn ghost" onclick="addWater(500)">+500 ml</button><button class="btn ghost" onclick="addWater(750)">+750 ml</button></div></div>
+<div class="section"><h3>Registro de peso</h3><div class="form"><input id="weightInput" type="number" step="0.1" placeholder="Peso de hoje em kg"><button class="btn ghost" onclick="saveWeight()">Salvar peso</button></div></div>
+</div>
+</div>
+</main></div>
+
+<div id="foodModal" style="position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;padding:16px;z-index:50"><div class="card" style="width:min(520px,100%);max-height:92vh;overflow:auto">
+<div class="top"><div><h2 style="margin:0">Adicionar alimento</h2><div class="muted">Registre só o necessário. O foco é velocidade.</div></div><button class="btn ghost" onclick="closeFoodModal()">Fechar</button></div>
+<div class="form">
+<select id="mealType"><option value="breakfast">Café da manhã</option><option value="lunch">Almoço</option><option value="snack">Lanche</option><option value="dinner">Jantar</option><option value="other">Outro</option></select>
+<input id="foodName" placeholder="Alimento / refeição">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><input id="foodQty" type="number" step="0.1" placeholder="Quantidade"><input id="foodUnit" placeholder="Unidade: g, ml, porção"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><input id="foodCalories" type="number" placeholder="Calorias"><input id="foodProtein" type="number" step="0.1" placeholder="Proteína (g)"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><input id="foodCarbs" type="number" step="0.1" placeholder="Carboidrato (g)"><input id="foodFat" type="number" step="0.1" placeholder="Gordura (g)"></div>
+<button class="btn" onclick="saveFood()">Salvar refeição</button>
+</div></div></div>
+<div class="sticky-add"><button class="btn" onclick="openFoodModal()">+ Adicionar refeição</button></div>
+<script src="./config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./nutricao.js?v=0.1"></script>
+</body></html>
