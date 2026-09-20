@@ -1,7 +1,7 @@
 const pages={dashboard:["Dashboard","Visão geral do seu sistema de conteúdo."],insights:["Inbox de Insights","Capture ideias antes que elas se percam."],contents:["Conteúdos","Acompanhe a produção editorial."],approval:["Aprovação","Controle humano antes de qualquer publicação."],calendar:["Calendário","Planejamento editorial e agendamentos."],analytics:["Métricas","Resultados e aprendizado do agente."],instagram:["Instagram","Conexão e publicação automática."],rules:["Regras Editoriais","A identidade que orienta o agente."]};
 const labels={dashboard:"Dashboard",insights:"Insights",contents:"Conteúdos",approval:"Aprovação",calendar:"Calendário",analytics:"Métricas",instagram:"Instagram",rules:"Regras"};
 const seed={insights:[{title:"Autoridade sem entregar toda a execução",body:"Mostrar domínio do problema, explicar o que e por quê, usar cases e complexidade.",source:"Estudo",status:"INSIGHT"}],contents:[{title:"IA NÃO COMEÇA PELA FERRAMENTA. COMEÇA PELO PROBLEMA.",format:"Carrossel",status:"APROVADO",caption:"Problema → Processo → Dados → Solução → Tecnologia.",objective:"Autoridade e educação",script:"Carrossel aprovado com 9 slides.",cta:"Seguir →",hashtags:"#InteligenciaArtificial #Automacao #Gestao #Processos #Tecnologia #Negocios",notes:"Post #001 aprovado.",media_urls:["https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_01.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_02.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_03.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_04.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_05.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_06.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_07.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_08.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_09.jpg"]}]};
-let data={insights:[],contents:[]},client=null,currentUser=null,remoteReady=false,currentContentId=null,currentMediaUrls=[];
+let data={insights:[],contents:[]},client=null,currentUser=null,remoteReady=false,currentContentId=null,currentMediaUrls=[],insightRecorder=null,insightAudioChunks=[],insightAudioBlob=null,insightStream=null;
 const POST001={
  title:"IA NÃO COMEÇA PELA FERRAMENTA. COMEÇA PELO PROBLEMA.",
  objective:"Mostrar que IA e automação devem partir de um problema real de negócio, reforçando autoridade em tecnologia aplicada à gestão e processos.",
@@ -127,14 +127,52 @@ function render(){
    ["Prontos para publicar",data.contents.filter(x=>x.status==="APROVADO"&&x.text_approved&&x.visual_approved).length]
  ].map(x=>`<div class="card metric"><span class="muted">${x[0]}</span><b>${x[1]}</b></div>`).join("");
  $("queue").innerHTML=data.contents.length?data.contents.map(x=>`<div class="item"><div><b>${esc(x.title)}</b><div class="muted">${esc(x.format||"")}</div><div class="approval-stages">${visualStage(x)}</div></div>${badge(x.status)}</div>`).join(""):'<div class="empty">Fila vazia</div>';
- $("insightList").innerHTML=data.insights.length?data.insights.map(x=>`<div class="item"><div><b>${esc(x.title)}</b><div class="muted">${esc(x.source||"Outro")} • ${esc(x.body||"")}</div></div><div class="toolbar">${badge(x.status)}${x.status==="INSIGHT"?`<button class="btn ghost" onclick="promote('${x.id}')">Virar pauta</button>`:""}</div></div>`).join(""):'<div class="empty">Nenhum insight capturado.</div>';
+ $("insightList").innerHTML=data.insights.length?data.insights.map(x=>{
+ const photos=Array.isArray(x.media_urls)?x.media_urls:[];
+ const link=x.link_url?'<div class="insight-links"><a target="_blank" rel="noopener" href="'+esc(x.link_url)+'">🔗 Abrir link</a></div>':"";
+ const audio=x.audio_url?'<div class="audio-chip">🎙️ <audio controls preload="none" src="'+esc(x.audio_url)+'"></audio></div>':"";
+ const imgs=photos.length?'<div class="capture-preview">'+photos.slice(0,4).map(u=>'<img src="'+esc(u)+'" alt="Foto do insight">').join("")+'</div>':"";
+ return '<div class="item"><div><b>'+esc(x.title)+'</b><div class="muted">'+esc(x.source||"Outro")+(x.body?' • '+esc(x.body):"")+'</div>'+link+imgs+audio+'</div><div class="toolbar">'+badge(x.status)+(x.status==="INSIGHT"?'<button class="btn ghost" onclick="promote(\''+x.id+'\')">Virar pauta</button>':"")+'</div></div>';
+}).join(""):'<div class="empty">Nenhum insight capturado.</div>';
  $("contentList").innerHTML=data.contents.length?data.contents.map(x=>`<div class="item"><div><b>${esc(x.title)}</b><div class="muted">${esc(x.format||"A definir")} • ${Array.isArray(x.media_urls)?x.media_urls.length:0} mídia(s)</div><div class="approval-stages">${visualStage(x)}</div></div><div class="toolbar">${badge(x.status)}<button class="btn ghost" onclick="openEditor('${x.id}')">Abrir editor</button><button class="btn ghost" onclick="go('approval')">Ver aprovação</button>${x.status==="DRAFT"?`<button class="btn" onclick="requestApproval('${x.id}')">Enviar p/ aprovação</button>`:""}</div></div>`).join(""):'<div class="empty">Nenhum conteúdo.</div>';
  const waiting=data.contents.filter(x=>!["PUBLICADO","ANALISADO","DESCARTADO"].includes(x.status));
  $("approvalList").innerHTML=waiting.length?waiting.map(approvalCard).join(""):'<div class="empty">Nenhum conteúdo aguardando aprovação.</div>';
  $("calendarGrid").innerHTML=Array.from({length:14},(_,i)=>{let d=new Date();d.setDate(d.getDate()+i);let key=d.toISOString().slice(0,10);let ev=data.contents.filter(x=>(x.scheduled_at||"").slice(0,10)===key);return `<div class="day"><b>${d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</b>${ev.map(e=>`<div class="event">${esc(e.title)}</div>`).join("")}</div>`}).join("");
 }
 
-function openInsight(){$("modal").classList.add("open")} function closeModal(){$("modal").classList.remove("open")}
+function openInsight(){$("modal").classList.add("open");renderInsightPhotoPreview()} 
+function closeModal(){if(insightRecorder&&insightRecorder.state==="recording")stopInsightRecording();$("modal").classList.remove("open")}
+function renderInsightPhotoPreview(){const box=$("iPhotoPreview");if(!box)return;box.innerHTML="";const files=[...($("iPhotos")?.files||[])];for(const f of files){const img=document.createElement("img");img.src=URL.createObjectURL(f);box.appendChild(img)}}
+$("iPhotos")?.addEventListener("change",renderInsightPhotoPreview);
+async function startInsightRecording(){
+ if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==="undefined")return alert("Seu navegador não permite gravação de áudio aqui.");
+ try{
+  insightStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  insightAudioChunks=[];
+  insightRecorder=new MediaRecorder(insightStream);
+  insightRecorder.ondataavailable=e=>{if(e.data.size)insightAudioChunks.push(e.data)};
+  insightRecorder.onstop=()=>{
+   insightAudioBlob=new Blob(insightAudioChunks,{type:insightRecorder.mimeType||"audio/webm"});
+   const url=URL.createObjectURL(insightAudioBlob);
+   $("iAudioPreview").src=url;$("iAudioPreview").style.display="block";
+   $("iAudioStatus").textContent="Áudio gravado e pronto para salvar.";
+   $("iAudioStatus").classList.remove("recording");
+   insightStream?.getTracks().forEach(t=>t.stop());insightStream=null;
+  };
+  insightRecorder.start();
+  $("recordAudioBtn").disabled=true;$("stopAudioBtn").disabled=false;
+  $("iAudioStatus").textContent="Gravando...";$("iAudioStatus").classList.add("recording");
+ }catch(err){alert("Não consegui acessar o microfone. Verifique a permissão do navegador.")}
+}
+function stopInsightRecording(){
+ if(insightRecorder&&insightRecorder.state==="recording")insightRecorder.stop();
+ $("recordAudioBtn").disabled=false;$("stopAudioBtn").disabled=true;
+}
+async function uploadInsightFile(file,path){
+ const {error}=await client.storage.from("lifeos-insights").upload(path,file,{upsert:true,contentType:file.type});
+ if(error)throw error;
+ return client.storage.from("lifeos-insights").getPublicUrl(path).data.publicUrl;
+}
 function openAuth(){$("authModal").classList.add("open")} function closeAuth(){$("authModal").classList.remove("open")}
 function closeEditor(){$("editorModal").classList.remove("open");currentContentId=null}
 function openEditor(id){
@@ -197,10 +235,33 @@ Entregue:
 }
 
 async function saveInsight(){
- const title=$("iTitle").value.trim(); if(!title)return alert("Digite um título.");
- const row={title,body:$("iBody").value.trim(),source:$("iSource").value,status:"INSIGHT"};
- const {data:r,error}=await client.from("insights").insert({...row,user_id:currentUser.id}).select().single(); if(error)return alert("Erro ao salvar: "+error.message);
- data.insights.unshift(r);$("iTitle").value="";$("iBody").value="";closeModal();saveLocal();go("insights");
+ if(!currentUser)return alert("Entre no LIFE OS primeiro.");
+ const body=$("iBody").value.trim(), link=$("iLink").value.trim(), photos=[...($("iPhotos")?.files||[])];
+ if(!body&&!link&&!photos.length&&!insightAudioBlob)return alert("Adicione texto, link, foto ou áudio.");
+ let title=$("iTitle").value.trim();
+ if(!title)title="Insight "+new Date().toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+ $("saveInsightBtn").disabled=true;$("saveInsightBtn").textContent="Salvando...";
+ try{
+  const base=currentUser.id+"/"+Date.now();
+  const media_urls=[];
+  for(let i=0;i<photos.length;i++){
+   const f=photos[i],ext=(f.name.split(".").pop()||"jpg").toLowerCase();
+   media_urls.push(await uploadInsightFile(f,base+"/photo_"+String(i+1).padStart(2,"0")+"."+ext));
+  }
+  let audio_url=null;
+  if(insightAudioBlob){
+   const ext=(insightAudioBlob.type||"").includes("mp4")?"m4a":"webm";
+   audio_url=await uploadInsightFile(insightAudioBlob,base+"/voice."+ext);
+  }
+  const row={title,body,source:$("iSource").value,status:"INSIGHT",link_url:link||null,media_urls,audio_url};
+  const {data:r,error}=await client.from("insights").insert({...row,user_id:currentUser.id}).select().single();
+  if(error)throw error;
+  data.insights.unshift(r);
+  $("iTitle").value="";$("iBody").value="";$("iLink").value="";$("iPhotos").value="";$("iPhotoPreview").innerHTML="";
+  $("iAudioPreview").style.display="none";$("iAudioPreview").removeAttribute("src");$("iAudioStatus").textContent="Grave uma nota de voz diretamente aqui.";insightAudioBlob=null;insightAudioChunks=[];
+  closeModal();saveLocal();go("insights");
+ }catch(error){alert("Erro ao salvar insight: "+error.message)}
+ finally{$("saveInsightBtn").disabled=false;$("saveInsightBtn").textContent="Salvar no Inbox";}
 }
 async function promote(id){
  const i=data.insights.find(x=>String(x.id)===String(id)); if(!i)return;
