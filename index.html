@@ -27,10 +27,66 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
 .approval-notes{margin-top:12px}.approval-notes textarea{width:100%;min-height:80px;background:#08101a;border:1px solid var(--line);color:white;padding:10px;border-radius:9px}
 @media(max-width:850px){.slide-preview{grid-template-columns:1fr}.slide-thumbs{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:850px){.app{grid-template-columns:1fr}aside{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}nav{display:flex;overflow:auto;gap:4px}nav button{white-space:nowrap;width:auto}.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}main{padding:18px}.calendar{grid-template-columns:repeat(2,1fr)}.top{align-items:flex-start;flex-wrap:wrap}.editor-grid{grid-template-columns:1fr}}
+
+@media(max-width:700px){
+  body{overflow-x:hidden}
+  .app{display:block}
+  aside{height:auto;position:static;padding:14px 12px;border-right:0;border-bottom:1px solid var(--line)}
+  .brand{font-size:18px}.sub{margin-bottom:14px}
+  .toolbar{gap:6px}
+  aside>.toolbar{display:grid;grid-template-columns:1fr 1fr}
+  aside>.toolbar .btn{width:100%;text-align:center;padding:9px 8px}
+  nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+  nav::-webkit-scrollbar{display:none}
+  nav button{flex:0 0 auto;width:auto;padding:9px 10px;margin:0;white-space:nowrap}
+  .statusbar{margin-top:10px;flex-wrap:wrap}
+  main{padding:12px;max-width:none}
+  main>.top{display:block;margin-bottom:14px}
+  main>.top .account{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  main>.top .account .muted{grid-column:1/-1}
+  main>.top .account .btn{width:100%}
+  .grid{grid-template-columns:1fr 1fr;gap:8px}
+  .two{grid-template-columns:1fr;gap:8px}
+  .card{padding:12px;border-radius:12px}
+  .item{display:block;padding:11px}
+  .item .badge{display:inline-block;margin-top:8px}
+  .calendar{grid-template-columns:1fr 1fr}
+  .approval-card{padding:12px}
+  .approval-head{display:block}
+  .approval-head>.badge{display:inline-block;margin-top:8px}
+  .slide-preview{grid-template-columns:1fr}
+  .slide-thumbs{grid-template-columns:repeat(3,1fr);gap:6px}
+  .slide-hero{border-radius:10px}
+  .slide-hero:after{font-size:9px;right:6px;bottom:6px;padding:3px 5px}
+  .format-strip{gap:5px}
+  .format-chip{font-size:10px;padding:5px 7px}
+  .approval-notes textarea{min-height:96px}
+  .approval-card .toolbar{display:grid;grid-template-columns:1fr 1fr}
+  .approval-card .toolbar .btn{width:100%;padding:10px 8px}
+  .form input,.form textarea,.form select{font-size:16px}
+  .editor-grid{grid-template-columns:1fr}
+  .editor-grid .full{grid-column:auto}
+  .editor-grid .toolbar{display:grid;grid-template-columns:1fr}
+  .editor-grid .toolbar .btn{width:100%}
+  .modal{padding:0;align-items:stretch;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .modal.open{display:block}
+  .modal .card{width:100%;max-height:none;min-height:100dvh;border-radius:0;border:0;padding:14px}
+  .modal .top{position:sticky;top:0;background:var(--panel);z-index:2;padding:8px 0 10px;margin-bottom:12px}
+  #instagram .top{display:block}
+  #instagram .top .badge{display:inline-block;margin-top:8px}
+  #instagram .toolbar{display:grid;grid-template-columns:1fr}
+  #instagram .toolbar .btn{width:100%}
+}
+@media(max-width:430px){
+  .grid{grid-template-columns:1fr}
+  .calendar{grid-template-columns:1fr}
+  .slide-thumbs{grid-template-columns:repeat(3,1fr)}
+  .approval-card .toolbar{grid-template-columns:1fr}
+}
 </style></head><body>
-<div id="loginGate" class="login-gate"><div class="login-box"><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.13</div><h1>Bem-vindo</h1><p>Entre para acessar seu Dashboard, insights, conteúdos, aprovações e calendário. Seus dados ficam sincronizados no Supabase.</p><button class="btn" onclick="openAuth()">Entrar no LIFE OS</button></div></div>
+<div id="loginGate" class="login-gate"><div class="login-box"><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.13.1</div><h1>Bem-vindo</h1><p>Entre para acessar seu Dashboard, insights, conteúdos, aprovações e calendário. Seus dados ficam sincronizados no Supabase.</p><button class="btn" onclick="openAuth()">Entrar no LIFE OS</button></div></div>
 <div id="appShell" class="app auth-hidden">
-<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.13</div><div class="toolbar" style="margin-bottom:14px"><a class="btn ghost" href="./index.html">Instagram</a><a class="btn ghost" href="./treinos.html">Treinos</a></div><nav id="nav"></nav><div class="statusbar"><span id="dbState" class="badge">LOCAL</span><span id="dbHint" class="muted">Carregando...</span></div></aside>
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.13.1</div><div class="toolbar" style="margin-bottom:14px"><a class="btn ghost" href="./index.html">Instagram</a><a class="btn ghost" href="./treinos.html">Treinos</a></div><nav id="nav"></nav><div class="statusbar"><span id="dbState" class="badge">LOCAL</span><span id="dbHint" class="muted">Carregando...</span></div></aside>
 <main><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="desc">Visão geral do seu sistema de conteúdo.</div></div><div class="account"><span id="authInfo" class="muted">Sem login</span><button id="authBtn" class="btn ghost" onclick="openAuth()">Entrar</button><button class="btn" onclick="openInsight()">+ Novo insight</button></div></div>
 <section id="dashboard" class="section active"><div class="grid" id="metrics"></div><div class="two"><div class="card"><h3>Fila de produção</h3><div class="list" id="queue"></div></div><div class="card"><h3>Próximos passos</h3><div class="list"><div class="item"><span>Capturar novos insights</span><span class="badge">INBOX</span></div><div class="item"><span>Gerar e revisar conteúdo</span><span class="badge">EDITOR</span></div><div class="item"><span>Conectar Instagram API</span><span class="badge">ETAPA 2</span></div></div></div></div></section>
 <section id="insights" class="section"><div class="card"><h3>Inbox de Insights</h3><div class="list" id="insightList"></div></div></section>
@@ -60,5 +116,5 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
 </div></div></div>
 
 <div class="modal" id="authModal"><div class="card"><div class="top"><div><h2>Conta LIFE OS</h2><div class="muted">Acesso restrito ao LIFE OS.</div></div><button class="btn ghost" onclick="closeAuth()">Fechar</button></div><div class="form"><input id="authEmail" type="email" placeholder="seu@email.com"><input id="authPassword" type="password" placeholder="Senha"><div class="toolbar"><button class="btn" onclick="signIn()">Entrar</button><button id="logoutBtn" class="btn danger" style="display:none" onclick="signOut()">Sair</button></div></div></div></div>
-<script src="config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=0.13"></script>
+<script src="config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js?v=0.13.1"></script>
 </body></html>
