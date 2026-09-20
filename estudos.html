@@ -8,12 +8,12 @@
 @media(max-width:900px){.app{grid-template-columns:1fr}aside{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}.study-area{grid-template-columns:1fr}}
 @media(max-width:700px){aside{padding:14px 12px}main{padding:12px}.modules{display:grid;grid-template-columns:repeat(3,1fr)}.modules .btn{text-align:center;padding:9px 6px}.grid{grid-template-columns:1fr}.top{align-items:flex-start;flex-wrap:wrap}.study-nav{display:grid;grid-template-columns:1fr 1fr}.study-nav .btn{width:100%}.question-card textarea{font-size:16px}}
 
-.study-blocks{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.study-block{padding:14px;border:1px solid var(--line);border-radius:12px;background:#09111b}.study-block h3{margin:8px 0 4px}.study-block .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.page-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}.page-btn{background:#10243e;color:#8fc6ff;border:1px solid #21476c;border-radius:9px;padding:8px 10px;font-weight:700;cursor:pointer}.page-modal{position:fixed;inset:0;background:#000d;display:none;z-index:90;overflow-y:auto;-webkit-overflow-scrolling:touch}.page-modal.open{display:block}.page-sheet{width:min(760px,100%);margin:30px auto;background:#09111b;border:1px solid var(--line);border-radius:16px;padding:18px}.page-question{padding:10px 0;border-bottom:1px solid var(--line)}.page-question:last-child{border-bottom:0}
+.study-blocks{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.study-block{padding:14px;border:1px solid var(--line);border-radius:12px;background:#09111b}.study-block h3{margin:8px 0 4px}.study-block.completed{border-color:#245c50;background:#0a1716}.study-block.inprogress{border-color:#31587e}.status-done{background:#0e2a24;color:var(--green)}.status-pending{background:#241b0d;color:#ffc46b}.status-progress{background:#10243e;color:#7abaff}.study-summary{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}.study-block .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.page-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}.page-btn{background:#10243e;color:#8fc6ff;border:1px solid #21476c;border-radius:9px;padding:8px 10px;font-weight:700;cursor:pointer}.page-modal{position:fixed;inset:0;background:#000d;display:none;z-index:90;overflow-y:auto;-webkit-overflow-scrolling:touch}.page-modal.open{display:block}.page-sheet{width:min(760px,100%);margin:30px auto;background:#09111b;border:1px solid var(--line);border-radius:16px;padding:18px}.page-question{padding:10px 0;border-bottom:1px solid var(--line)}.page-question:last-child{border-bottom:0}
 @media(max-width:700px){.study-blocks{grid-template-columns:1fr}.page-sheet{margin:0;min-height:100dvh;border:0;border-radius:0}.page-sheet>.top{position:sticky;top:0;background:#09111b;z-index:2;padding:8px 0}}
 </style></head><body>
-<div id="gate" class="card login"><div class="brand">LIFE <span>OS</span></div><div class="sub">ESTUDOS • v0.4.2</div><h1>Estudos</h1><p class="muted">Use o mesmo login do LIFE OS.</p><button class="btn" id="loginBtn">Entrar</button></div>
+<div id="gate" class="card login"><div class="brand">LIFE <span>OS</span></div><div class="sub">ESTUDOS • v0.5</div><h1>Estudos</h1><p class="muted">Use o mesmo login do LIFE OS.</p><button class="btn" id="loginBtn">Entrar</button></div>
 <div id="shell" class="app" style="display:none">
-<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">ESTUDOS • v0.4.2</div>
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">ESTUDOS • v0.5</div>
 <div class="modules"><a class="btn ghost" href="./index.html" onclick="lifeNav(event,'./index.html')">Instagram</a><a class="btn ghost" href="./treinos.html" onclick="lifeNav(event,'./treinos.html')">Treinos</a><a class="btn ghost active" href="./estudos.html" onclick="lifeNav(event,'./estudos.html')">Estudos</a></div>
 <div class="card"><div class="muted">Foco atual</div><b>Inglês</b><div class="muted" style="margin-top:6px">BTB 5 — páginas 35 a 39</div></div>
 </aside>
@@ -53,13 +53,13 @@
 <button class="page-btn" onclick="openStudyPage(38)">Abrir pág. 38</button>
 <button class="page-btn" onclick="openStudyPage(39)">Abrir pág. 39</button>
 </div>
-<div id="studyBlocks" class="study-blocks section"></div>
+<div id="studySummary" class="study-summary"><span class="badge status-pending">Pendentes: —</span><span class="badge status-progress">Em andamento: —</span><span class="badge status-done">Concluídas: —</span></div><div id="studyBlocks" class="study-blocks section"></div>
 </div>
 
 <div class="section card"><h2>Histórico</h2><div id="studyHistory" class="lesson-list"><div class="muted">Nenhuma sessão concluída ainda.</div></div></div>
 </main></div>
 <div id="pageModal" class="page-modal"><div class="page-sheet"><div class="top"><div><span id="pageBadge" class="badge">PÁGINA</span><h2 id="pageTitle">Página</h2><div id="pageSubtitle" class="muted"></div></div><button class="btn ghost" onclick="closeStudyPage()">Fechar</button></div><div id="pageContent"></div></div></div>
-<script src="./config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./estudos.js?v=0.4.2"></script>
+<script src="./config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./estudos.js?v=0.5"></script>
 <script>
 const LIFE_OS_BUILD="20260919-2252";
 function lifeNav(e,path){e.preventDefault();location.href=path+"?b="+LIFE_OS_BUILD}
