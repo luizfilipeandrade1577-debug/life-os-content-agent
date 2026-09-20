@@ -1,7 +1,7 @@
-const pages={dashboard:["Dashboard","Visão geral do seu sistema de conteúdo."],insights:["Inbox de Insights","Capture ideias antes que elas se percam."],contents:["Conteúdos","Acompanhe a produção editorial."],approval:["Aprovação","Controle humano antes de qualquer publicação."],calendar:["Calendário","Planejamento editorial e agendamentos."],analytics:["Métricas","Resultados e aprendizado do agente."],instagram:["Instagram","Conexão e publicação automática."],rules:["Regras Editoriais","A identidade que orienta o agente."]};
-const labels={dashboard:"Dashboard",insights:"Insights",contents:"Conteúdos",approval:"Aprovação",calendar:"Calendário",analytics:"Métricas",instagram:"Instagram",rules:"Regras"};
+const pages={dashboard:["Dashboard","Visão geral do seu sistema de conteúdo."],insights:["Inbox de Insights","Capture ideias antes que elas se percam."],contents:["Conteúdos","Acompanhe a produção editorial."],approval:["Aprovação","Controle humano antes de qualquer publicação."],calendar:["Cronograma","O que criar, quando publicar e o que alimentar no agente."],analytics:["Métricas","Resultados e aprendizado do agente."],instagram:["Instagram","Conexão e publicação automática."],rules:["Regras Editoriais","A identidade que orienta o agente."]};
+const labels={dashboard:"Dashboard",insights:"Insights",contents:"Conteúdos",approval:"Aprovação",calendar:"Cronograma",analytics:"Métricas",instagram:"Instagram",rules:"Regras"};
 const seed={insights:[{title:"Autoridade sem entregar toda a execução",body:"Mostrar domínio do problema, explicar o que e por quê, usar cases e complexidade.",source:"Estudo",status:"INSIGHT"}],contents:[{title:"IA NÃO COMEÇA PELA FERRAMENTA. COMEÇA PELO PROBLEMA.",format:"Carrossel",status:"APROVADO",caption:"Problema → Processo → Dados → Solução → Tecnologia.",objective:"Autoridade e educação",script:"Carrossel aprovado com 9 slides.",cta:"Seguir →",hashtags:"#InteligenciaArtificial #Automacao #Gestao #Processos #Tecnologia #Negocios",notes:"Post #001 aprovado.",media_urls:["https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_01.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_02.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_03.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_04.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_05.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_06.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_07.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_08.jpg","https://xibmedokistlntbaoxen.supabase.co/storage/v1/object/public/instagram-posts/post-001/Post_001_slide_09.jpg"]}]};
-let data={insights:[],contents:[]},client=null,currentUser=null,remoteReady=false,currentContentId=null,currentMediaUrls=[],insightRecorder=null,insightAudioChunks=[],insightAudioBlob=null,insightStream=null;
+let data={insights:[],contents:[]},contentPlan=[],client=null,currentUser=null,remoteReady=false,currentContentId=null,currentMediaUrls=[],insightRecorder=null,insightAudioChunks=[],insightAudioBlob=null,insightStream=null;
 const POST001={
  title:"IA NÃO COMEÇA PELA FERRAMENTA. COMEÇA PELO PROBLEMA.",
  objective:"Mostrar que IA e automação devem partir de um problema real de negócio, reforçando autoridade em tecnologia aplicada à gestão e processos.",
@@ -89,6 +89,49 @@ Tecnologia não é o objetivo. É a alavanca.
  hashtags:"#InteligenciaArtificial #Automacao #Gestao #Processos #Tecnologia #Negocios",
  notes:"Manter a identidade aprovada: fundo preto/navy, tipografia branca forte, detalhes em azul, visual limpo e profissional. Pouco texto por bloco, bastante contraste, sem aparência genérica de post de IA. Slide 1 pode usar sua imagem; demais slides priorizam processo, operação, tecnologia e ambiente empresarial."
 };
+
+
+const CONTENT_PLAN_SEED=[
+ {weekday:1,title:"Insight de Gestão",pillar:"Gestão & Liderança",format:"Carrossel ou post",objective:"Construir autoridade a partir de situações reais.",input_needed:"Conte 1 situação do trabalho: problema, decisão tomada, o que aprendeu e resultado.",agent_instruction:"Transformar o relato em conteúdo prático de gestão, sem expor dados confidenciais.",publish_time:"19:30",sort_order:1},
+ {weekday:2,title:"Bastidor rápido",pillar:"Construindo na prática",format:"Stories",objective:"Mostrar processo, rotina e construção real.",input_needed:"Envie 1 foto, print, áudio ou vídeo curto de algo que está construindo/estudando.",agent_instruction:"Criar sequência curta de stories com contexto, aprendizado e CTA leve.",publish_time:"18:30",sort_order:2},
+ {weekday:3,title:"IA / Automação aplicada",pillar:"IA & Automação",format:"Carrossel ou Reel",objective:"Educar e gerar demanda mostrando aplicação real.",input_needed:"Envie 1 problema repetitivo de empresa + como hoje é feito + o que poderia ser automatizado.",agent_instruction:"Explicar problema → processo → solução → ganho potencial, com linguagem simples.",publish_time:"19:30",sort_order:3},
+ {weekday:4,title:"Aprendizado da semana",pillar:"Desenvolvimento & Negócios",format:"Stories",objective:"Humanizar o perfil e mostrar evolução contínua.",input_needed:"Envie 1 aprendizado do G4, inglês, negócio, liderança ou tecnologia e como isso mudou sua visão.",agent_instruction:"Transformar o insight em stories curtos, pessoais e aplicáveis.",publish_time:"18:30",sort_order:4},
+ {weekday:5,title:"Case / Build in public",pillar:"Cases & Sistemas",format:"Carrossel ou Reel",objective:"Provar capacidade por meio de projetos e resultados.",input_needed:"Envie avanço do REFRIFLOW/LIFE OS: antes, mudança feita, print/foto e impacto esperado ou medido.",agent_instruction:"Criar case com contexto, problema, construção, resultado e próximo passo; evitar informações sensíveis.",publish_time:"19:00",sort_order:5}
+];
+async function ensureContentPlan(){
+ if(!currentUser||!client)return;
+ const {data:rows,error}=await client.from("content_plan").select("*").eq("active",true).order("sort_order");
+ if(error){console.warn(error);return}
+ if(rows?.length){contentPlan=rows;renderContentPlan();return}
+ const payload=CONTENT_PLAN_SEED.map(x=>({...x,user_id:currentUser.id}));
+ const {data:created,error:ei}=await client.from("content_plan").insert(payload).select();
+ if(!ei)contentPlan=created||[];
+ renderContentPlan();
+}
+function weekdayLabel(n){return ["","SEG","TER","QUA","QUI","SEX","SÁB","DOM"][n]||""}
+function currentWeekday(){let d=new Date().getDay();return d===0?7:d}
+function renderContentPlan(){
+ const grid=$("contentPlanGrid");if(!grid)return;
+ const wd=currentWeekday();
+ grid.innerHTML=contentPlan.map(p=>'<div class="plan-card '+(p.weekday===wd?"today":"")+'"><span class="badge">'+weekdayLabel(p.weekday)+'</span><h4>'+esc(p.title)+'</h4><div class="muted">'+esc(p.pillar)+' • '+esc(p.format)+'</div><div class="need"><b>Você alimenta:</b><br>'+esc(p.input_needed||"")+'</div><button class="btn ghost" onclick="feedPlanItem(\''+p.id+'\')">Alimentar agente</button></div>').join("");
+ const today=contentPlan.find(p=>p.weekday===wd)||contentPlan.find(p=>p.weekday>wd)||contentPlan[0];
+ if(today){
+   $("todayContentTitle").textContent=today.title;
+   $("todayContentMeta").textContent=weekdayLabel(today.weekday)+" • "+today.pillar+" • "+today.format+(today.publish_time?" • "+today.publish_time.slice(0,5):"");
+   $("todayContentNeed").innerHTML="<b>Me envie:</b><br>"+esc(today.input_needed||"");
+   const pieces=(today.input_needed||"").split(/\s*\+\s*|,\s*/).filter(Boolean);
+   $("todayChecklist").innerHTML=(pieces.length?pieces:[today.input_needed]).map(x=>'<div class="checkline">☐ '+esc(x)+'</div>').join("");
+ }
+}
+function openInsightWithPlan(plan){
+ go("insights");openInsight();
+ $("iTitle").value=plan.title+" — "+new Date().toLocaleDateString("pt-BR");
+ $("iBody").value="CONTEÚDO PLANEJADO\nPilar: "+plan.pillar+"\nFormato: "+plan.format+"\n\nO que preciso registrar:\n"+plan.input_needed+"\n\nMeu material/relato:\n";
+ $("iSource").value="Dia a dia";
+ $("iBody").focus();
+}
+window.feedPlanItem=id=>{const p=contentPlan.find(x=>String(x.id)===String(id));if(p)openInsightWithPlan(p)}
+window.feedTodayContent=()=>{const wd=currentWeekday();const p=contentPlan.find(x=>x.weekday===wd)||contentPlan.find(x=>x.weekday>wd)||contentPlan[0];if(p)openInsightWithPlan(p)}
 
 const $=id=>document.getElementById(id);
 function esc(v=""){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -579,7 +622,7 @@ async function refreshRemote(){
  if(!currentUser){remoteReady=false;data={insights:[],contents:[]};setDbState("OFFLINE","Faça login");renderAuth();render();return}
  const [{data:ins,error:ei},{data:con,error:ec}]=await Promise.all([client.from("insights").select("*").order("created_at",{ascending:false}),client.from("contents").select("*").order("created_at",{ascending:false})]);
  if(ei||ec){remoteReady=false;setDbState("CONFIGURAR","Execute a migração v0.5");renderAuth();return}
- remoteReady=true;data={insights:ins||[],contents:con||[]};localStorage.setItem("lifeos-content",JSON.stringify(data));setDbState("ONLINE","Supabase sincronizado");renderAuth();render();await refreshInstagramStatus();await ensureApprovedMedia();
+ remoteReady=true;data={insights:ins||[],contents:con||[]};localStorage.setItem("lifeos-content",JSON.stringify(data));setDbState("ONLINE","Supabase sincronizado");renderAuth();render();await ensureContentPlan();await refreshInstagramStatus();await ensureApprovedMedia();
 }
 function setDbState(state,msg){$("dbState").textContent=state;$("dbState").className="badge "+(state==="ONLINE"?"ok":"");$("dbHint").textContent=msg}
 function renderAuth(){$("authBtn").textContent=currentUser?"Conta":"Entrar";$("authInfo").textContent=currentUser?currentUser.email:"Sem login";$("logoutBtn").style.display=currentUser?"block":"none";$("loginGate").style.display=currentUser?"none":"grid";$("appShell").classList.toggle("auth-hidden",!currentUser)}
