@@ -23,9 +23,9 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
 .approval-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:14px}.approval-stages{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
 .stage{font-size:11px;padding:6px 9px;border-radius:99px;background:#1a2330;color:#9aa9bc}.stage.ok{background:#0d2c25;color:#62e0bc}.stage.pending{background:#2b2411;color:#f2cb67}
 .slide-preview{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(260px,1fr);gap:16px;align-items:start}.slide-frame{position:relative}.format-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.format-chip{font-size:12px;padding:6px 9px;border-radius:999px;background:#0c2742;color:#86c5ff;border:1px solid #21476c}.format-chip.ok{background:#0d2c25;color:#66dfbe;border-color:#1e5b4e}.format-chip.err{background:#38151d;color:#ff9dab;border-color:#6e2837}.slide-hero{aspect-ratio:3/4;overflow:hidden;border-radius:14px;border:2px solid #2c5f8e;background:#050a11;box-shadow:0 18px 50px #0008;position:relative}.slide-hero:after{content:"SAFE AREA 3:4 • 1080×1440";position:absolute;right:10px;bottom:10px;font-size:11px;color:#8abbe8;background:#07111dcc;border:1px solid #24405f;border-radius:6px;padding:4px 7px}.slide-hero img{width:100%;height:100%;object-fit:contain;display:block;background:#07101a}
-.slide-thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.slide-thumb{aspect-ratio:3/4;border-radius:10px;overflow:hidden;border:1px solid #20354d;cursor:pointer;background:#050a11;transition:.15s}.slide-thumb:hover{transform:translateY(-2px);border-color:#3f78ad}.slide-thumb img{width:100%;height:100%;object-fit:cover;display:block}.slide-thumb.active{outline:3px solid var(--blue);outline-offset:1px}
+.slide-thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.slide-thumb{aspect-ratio:3/4;border-radius:10px;overflow:hidden;border:1px solid #20354d;cursor:pointer;background:#050a11;transition:.15s}.slide-thumb:hover{transform:translateY(-2px);border-color:#3f78ad}.slide-thumb img{width:100%;height:100%;object-fit:cover;display:block}.slide-thumb.active{outline:3px solid var(--blue);outline-offset:1px}
 .approval-notes{margin-top:12px}.approval-notes textarea{width:100%;min-height:80px;background:#08101a;border:1px solid var(--line);color:white;padding:10px;border-radius:9px}
-@media(max-width:850px){.slide-preview{grid-template-columns:1fr}.slide-thumbs{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:850px){.slide-preview{grid-template-columns:1fr}.slide-thumbs{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:850px){.app{grid-template-columns:1fr}aside{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}nav{display:flex;overflow:auto;gap:4px}nav button{white-space:nowrap;width:auto}.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}main{padding:18px}.calendar{grid-template-columns:repeat(2,1fr)}.top{align-items:flex-start;flex-wrap:wrap}.editor-grid{grid-template-columns:1fr}}
 
 @media(max-width:700px){
@@ -34,7 +34,7 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
   aside{height:auto;position:static;padding:14px 12px;border-right:0;border-bottom:1px solid var(--line)}
   .brand{font-size:18px}.sub{margin-bottom:14px}
   .toolbar{gap:6px}
-  aside>.toolbar{display:grid;grid-template-columns:repeat(3,1fr)}
+  aside>.toolbar{display:grid;grid-template-columns:repeat(4,1fr)}
   aside>.toolbar .btn{width:100%;text-align:center;padding:9px 8px}
   nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
   nav::-webkit-scrollbar{display:none}
@@ -55,7 +55,7 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
   .approval-head{display:block}
   .approval-head>.badge{display:inline-block;margin-top:8px}
   .slide-preview{grid-template-columns:1fr}
-  .slide-thumbs{grid-template-columns:repeat(3,1fr);gap:6px}
+  .slide-thumbs{grid-template-columns:repeat(4,1fr);gap:6px}
   .slide-hero{border-radius:10px}
   .slide-hero:after{font-size:9px;right:6px;bottom:6px;padding:3px 5px}
   .format-strip{gap:5px}
@@ -80,16 +80,16 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
 @media(max-width:430px){
   .grid{grid-template-columns:1fr}
   .calendar{grid-template-columns:1fr}
-  .slide-thumbs{grid-template-columns:repeat(3,1fr)}
+  .slide-thumbs{grid-template-columns:repeat(4,1fr)}
   .approval-card .toolbar{grid-template-columns:1fr}
 }
 
 .insight-capture{display:grid;gap:10px}.insight-media-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.record-box{border:1px dashed var(--line);border-radius:10px;padding:12px;background:#08101a}.recording{color:#ff8fa3;font-weight:700}.capture-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.capture-preview img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}.insight-links{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.insight-links a{color:#8bc2ff;text-decoration:none}.audio-chip{display:inline-flex;align-items:center;gap:6px;color:#8bc2ff;font-size:12px;margin-top:6px}
 @media(max-width:700px){.insight-media-row{grid-template-columns:1fr}.record-box .toolbar{display:grid;grid-template-columns:1fr 1fr}.record-box .btn{width:100%}}
 </style></head><body>
-<div id="loginGate" class="login-gate"><div class="login-box"><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.15</div><h1>Bem-vindo</h1><p>Entre para acessar seu Dashboard, insights, conteúdos, aprovações e calendário. Seus dados ficam sincronizados no Supabase.</p><button class="btn" onclick="openAuth()">Entrar no LIFE OS</button></div></div>
+<div id="loginGate" class="login-gate"><div class="login-box"><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.15.1</div><h1>Bem-vindo</h1><p>Entre para acessar seu Dashboard, insights, conteúdos, aprovações e calendário. Seus dados ficam sincronizados no Supabase.</p><button class="btn" onclick="openAuth()">Entrar no LIFE OS</button></div></div>
 <div id="appShell" class="app auth-hidden">
-<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.15</div><div class="toolbar" style="margin-bottom:14px"><a class="btn ghost active" href="./index.html" onclick="lifeNav(event,'./index.html')">Instagram</a><a class="btn ghost" href="./treinos.html" onclick="lifeNav(event,'./treinos.html')">Treinos</a><a class="btn ghost" href="./estudos.html" onclick="lifeNav(event,'./estudos.html')">Estudos</a></div><nav id="nav"></nav><div class="statusbar"><span id="dbState" class="badge">LOCAL</span><span id="dbHint" class="muted">Carregando...</span></div></aside>
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.15.1</div><div class="toolbar" style="margin-bottom:14px"><a class="btn ghost active" href="./index.html" onclick="lifeNav(event,'./index.html')">Instagram</a><a class="btn ghost" href="./treinos.html" onclick="lifeNav(event,'./treinos.html')">Treinos</a><a class="btn ghost" href="./estudos.html" onclick="lifeNav(event,'./estudos.html')">Estudos</a><a class="btn ghost" href="./empresa.html" onclick="lifeNav(event,'./empresa.html')">Empresa</a></div><nav id="nav"></nav><div class="statusbar"><span id="dbState" class="badge">LOCAL</span><span id="dbHint" class="muted">Carregando...</span></div></aside>
 <main><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="desc">Visão geral do seu sistema de conteúdo.</div></div><div class="account"><span id="authInfo" class="muted">Sem login</span><button id="authBtn" class="btn ghost" onclick="openAuth()">Entrar</button><button class="btn" onclick="openInsight()">+ Novo insight</button></div></div>
 <section id="dashboard" class="section active"><div class="grid" id="metrics"></div><div class="two"><div class="card"><h3>Fila de produção</h3><div class="list" id="queue"></div></div><div class="card"><h3>Próximos passos</h3><div class="list"><div class="item"><span>Capturar novos insights</span><span class="badge">INBOX</span></div><div class="item"><span>Gerar e revisar conteúdo</span><span class="badge">EDITOR</span></div><div class="item"><span>Conectar Instagram API</span><span class="badge">ETAPA 2</span></div></div></div></div></section>
 <section id="insights" class="section"><div class="card"><h3>Inbox de Insights</h3><div class="list" id="insightList"></div></div></section>
