@@ -2,6 +2,29 @@ const cfg=window.LIFE_OS_CONFIG;
 const sb=supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey);
 let user=null,routines=[],selected=null,activeSession=null,activeExercises=[],timerId=null,startedAt=null,restTimerId=null,restEndsAt=null,pendingSession=null,autosaveTimers={};
 const DAYS={1:"Segunda",2:"Terça",3:"Quarta",4:"Quinta",5:"Sexta",6:"Sábado",7:"Domingo"};
+const PT_EXERCISE_NAMES={
+ "Dumbbell Incline Press":"Supino inclinado com halteres",
+ "Cable Incline Fly":"Crucifixo inclinado na polia",
+ "Chest Fly Machine":"Crucifixo na máquina / Peck Deck",
+ "Shoulder Press Machine":"Desenvolvimento de ombros na máquina",
+ "Cable Lateral Raise":"Elevação lateral na polia",
+ "Cable Tricep Extension":"Tríceps na corda / polia",
+ "Cable Overhead Tricep Extension":"Tríceps francês na polia",
+ "Barbell Back Squat":"Agachamento livre com barra",
+ "Leg Press Machine":"Leg press",
+ "Leg Extension Machine":"Cadeira extensora",
+ "Barbell Romanian Deadlift":"Stiff / levantamento terra romeno",
+ "Seated Leg Curl Machine":"Cadeira flexora",
+ "Seated Calf Raise Machine":"Panturrilha sentado",
+ "Cable Lat Pulldown":"Puxada alta na polia",
+ "Dumbbell Chest Supported Row":"Remada com halteres apoiado no banco",
+ "Cable Row":"Remada baixa na polia",
+ "Cable Face Pull":"Face pull na polia",
+ "Dumbbell Bicep Curl":"Rosca direta com halteres",
+ "Hammer Curl":"Rosca martelo com halteres",
+ "Hip Thrust":"Elevação pélvica / Hip Thrust"
+};
+function exercisePt(name){return PT_EXERCISE_NAMES[name]||name;}
 const seed=[
  {name:"LIFE OS - PUSH",day:1,ex:[["Dumbbell Incline Press",[8,8,10]],["Cable Incline Fly",[12,12,12]],["Chest Fly Machine",[12,12,12]],["Shoulder Press Machine",[10,10,10]],["Cable Lateral Raise",[15,15,15]],["Cable Tricep Extension",[12,12,12]],["Cable Overhead Tricep Extension",[12,12]]]},
  {name:"LIFE OS - LEGS",day:2,ex:[["Barbell Back Squat",[8,8,10]],["Leg Press Machine",[10,10,12]],["Leg Extension Machine",[12,12,12]],["Barbell Romanian Deadlift",[10,10,10]],["Seated Leg Curl Machine",[12,12,12]],["Seated Calf Raise Machine",[15,15,15,15]]]},
@@ -37,7 +60,7 @@ function renderRoutines(){
 async function selectRoutine(id){
  selected=id;renderRoutines();const r=routines.find(x=>x.id===id);routineTitle.textContent=r.name;routineDay.textContent=DAYS[r.day_of_week];
  const {data:e}=await sb.from("training_exercises").select("*").eq("routine_id",id).order("position");
- exerciseList.innerHTML=(e||[]).map(x=>`<div class="exercise"><div><b>${x.exercise_name}</b><div class="muted">${x.sets} séries</div><button class="demo" style="background:none;border:0;padding:0;cursor:pointer" onclick="openExerciseDemo(\'${encodeURIComponent(x.exercise_name)}\')">▶ Ver demonstração</button></div><div class="reps">${(x.reps||[]).join(" / ")} reps</div></div>`).join("");
+ exerciseList.innerHTML=(e||[]).map(x=>`<div class="exercise"><div><b>${exercisePt(x.exercise_name)}</b><div class="muted">${x.sets} séries</div><button class="demo" style="background:none;border:0;padding:0;cursor:pointer" onclick="openExerciseDemo(\'${encodeURIComponent(x.exercise_name)}\')">▶ Ver demonstração</button></div><div class="reps">${(x.reps||[]).join(" / ")} reps</div></div>`).join("");
 }
 startBtn.onclick=startWorkout;
 async function checkOpenSession(){const {data:s}=await sb.from("training_sessions").select("*").is("finished_at",null).order("started_at",{ascending:false}).limit(1);pendingSession=s&&s[0]?s[0]:null;if(!pendingSession){if(document.getElementById("resumeCard"))resumeCard.style.display="none";return}const r=routines.find(x=>x.id===pendingSession.routine_id);if(document.getElementById("resumeCard"))resumeCard.style.display="block";if(document.getElementById("resumeText"))resumeText.textContent=(r?r.name:"Treino")+" • iniciado "+new Date(pendingSession.started_at).toLocaleString("pt-BR");}
@@ -86,7 +109,7 @@ async function buildWorkout(session,routineId){
  const prevMap={};for(const p of previous){const k=p.exercise_id+"_"+p.set_number;if(prevMap[k]===undefined)prevMap[k]=p;}
  const curMap={};for(const c of current){curMap[c.exercise_id+"_"+c.set_number]=c;}
  workoutTitle.textContent=r?r.name:"Treino";
- workoutExercises.innerHTML=activeExercises.map(ex=>{const targets=ex.reps||[];const rows=Array.from({length:ex.sets},(_,i)=>{const p=prevMap[ex.id+"_"+(i+1)],c=curMap[ex.id+"_"+(i+1)];return "<div class=\"set-row\" data-ex=\""+ex.id+"\" data-set=\""+(i+1)+"\"><b>"+(i+1)+"</b><span class=\"muted\">"+(p&&p.weight_kg!=null?p.weight_kg:"—")+"</span><input class=\"kg\" inputmode=\"decimal\" placeholder=\"kg\" value=\""+(c&&c.weight_kg!=null?c.weight_kg:(p&&p.weight_kg!=null?p.weight_kg:""))+"\"><input class=\"rp\" inputmode=\"numeric\" placeholder=\""+(targets[i]||"")+"\" value=\""+(c&&c.reps!=null?c.reps:"")+"\"><button class=\"check "+(c&&c.completed?"done":"")+"\" onclick=\"toggleSet(this)\">✓</button></div>";}).join("");return "<div class=\"work-ex\"><div class=\"top\" style=\"margin-bottom:8px\"><div><h3 style=\"margin:0\">"+ex.exercise_name+"</h3><div class=\"muted\">Alvo: "+targets.join(" / ")+" reps</div><div class=\"progression\">"+progressionText(ex,prevMap)+"</div></div><button class=\"demo\" style=\"background:none;border:0;padding:0;cursor:pointer\" data-demo=\""+encodeURIComponent(ex.exercise_name)+"\" onclick=\"openExerciseDemo(this.dataset.demo)\">▶ Demonstração</button></div><div class=\"set-head\"><span>Série</span><span>Anterior</span><span>Kg</span><span>Reps</span><span>Feita</span></div>"+rows+"</div>";}).join("");
+ workoutExercises.innerHTML=activeExercises.map(ex=>{const targets=ex.reps||[];const rows=Array.from({length:ex.sets},(_,i)=>{const p=prevMap[ex.id+"_"+(i+1)],c=curMap[ex.id+"_"+(i+1)];return "<div class=\"set-row\" data-ex=\""+ex.id+"\" data-set=\""+(i+1)+"\"><b>"+(i+1)+"</b><span class=\"muted\">"+(p&&p.weight_kg!=null?p.weight_kg:"—")+"</span><input class=\"kg\" inputmode=\"decimal\" placeholder=\"kg\" value=\""+(c&&c.weight_kg!=null?c.weight_kg:(p&&p.weight_kg!=null?p.weight_kg:""))+"\"><input class=\"rp\" inputmode=\"numeric\" placeholder=\""+(targets[i]||"")+"\" value=\""+(c&&c.reps!=null?c.reps:"")+"\"><button class=\"check "+(c&&c.completed?"done":"")+"\" onclick=\"toggleSet(this)\">✓</button></div>";}).join("");return "<div class=\"work-ex\"><div class=\"top\" style=\"margin-bottom:8px\"><div><h3 style=\"margin:0\">"+exercisePt(ex.exercise_name)+"</h3><div class=\"muted\">Alvo: "+targets.join(" / ")+" reps</div><div class=\"progression\">"+progressionText(ex,prevMap)+"</div></div><button class=\"demo\" style=\"background:none;border:0;padding:0;cursor:pointer\" data-demo=\""+encodeURIComponent(ex.exercise_name)+"\" onclick=\"openExerciseDemo(this.dataset.demo)\">▶ Demonstração</button></div><div class=\"set-head\"><span>Série</span><span>Anterior</span><span>Kg</span><span>Reps</span><span>Feita</span></div>"+rows+"</div>";}).join("");
  bindAutosave();workoutModal.classList.add("open");workoutModal.scrollTop=0;startTimer();
 }
 async function startWorkout(){if(!selected)return;const {data:open}=await sb.from("training_sessions").select("*").is("finished_at",null).order("started_at",{ascending:false}).limit(1);if(open&&open[0]){pendingSession=open[0];return resumeWorkout(open[0]);}const {data:s,error}=await sb.from("training_sessions").insert({user_id:user.id,routine_id:selected}).select().single();if(error)return alert(error.message);await buildWorkout(s,selected);await checkOpenSession();}
@@ -113,11 +136,18 @@ const CURATED_DEMOS={
  "Seated Leg Curl Machine":{id:"Orxowest56U",creator:"Renaissance Periodization",title:"Seated Leg Curl"},
  "Cable Lat Pulldown":{id:"PEiIOW7HGnA",creator:"Jeff Nippard",title:"Lat Pulldown Technique"},
  "Dumbbell Chest Supported Row":{id:"0UBRfiO4zDs",creator:"Renaissance Periodization",title:"Chest Supported Row"},
- "Cable Row":{id:"UCXxvVItLoM",creator:"Renaissance Periodization",title:"Seated Cable Row"}
+ "Cable Row":{id:"UCXxvVItLoM",creator:"Renaissance Periodization",title:"Seated Cable Row"},
+ "Cable Tricep Extension":{id:"9CT50QsckIE",creator:"Laércio Refundini",title:"Tríceps na polia — demonstração curta"},
+ "Chest Fly Machine":{id:"zEcIgGm7fxU",creator:"Pedro Rubini",title:"Crucifixo máquina / Peck Deck"},
+ "Barbell Romanian Deadlift":{id:"h2fOgVj38CU",creator:"Juarez Trancoso",title:"Execução correta do Stiff"},
+ "Hammer Curl":{id:"43vzsQMvYys",creator:"Treinador Wagner Durigon",title:"Rosca martelo com halter"},
+ "Hip Thrust":{id:"nFmbqSiWx04",creator:"Renato Cariani",title:"Elevação pélvica"},
+ "Seated Calf Raise Machine":{id:"zKC9BR3M5tg",creator:"Academia Energy Fitness",title:"Panturrilha sentado"}
 };
 window.openExerciseDemo=async encodedName=>{
  const exerciseName=decodeURIComponent(encodedName);
- demoTitle.textContent=exerciseName;
+ const exerciseSearchName=exercisePt(exerciseName);
+ demoTitle.textContent=exerciseSearchName;
  demoSubtitle.textContent="Demonstração selecionada para o LIFE OS GYM";
  demoMedia.innerHTML='<div class="demo-empty">Carregando demonstração...</div>';
  demoSteps.innerHTML="";
@@ -129,17 +159,17 @@ window.openExerciseDemo=async encodedName=>{
    return;
  }
  try{
-  const res=await fetch("https://wger.de/api/v2/exerciseinfo/?limit=20&name__search="+encodeURIComponent(exerciseName));
+  const res=await fetch("https://wger.de/api/v2/exerciseinfo/?limit=20&name__search="+encodeURIComponent(exerciseSearchName));
   if(!res.ok)throw new Error("Falha");
   const json=await res.json();
-  const ranked=(json.results||[]).map(item=>{const names=(item.translations||[]).map(t=>t.name).filter(Boolean);return {item,best:Math.max(0,...names.map(n=>scoreExerciseName(n,exerciseName)))};}).sort((a,b)=>b.best-a.best);
+  const ranked=(json.results||[]).map(item=>{const names=(item.translations||[]).map(t=>t.name).filter(Boolean);return {item,best:Math.max(0,...names.map(n=>scoreExerciseName(n,exerciseSearchName)))};}).sort((a,b)=>b.best-a.best);
   if(!ranked[0]||ranked[0].best<10)throw new Error("Sem mídia");
   const item=ranked[0].item;
   const video=(item.videos||[])[0];
   const image=(item.images||[]).find(i=>i.is_main)||(item.images||[])[0];
   let media="";
   if(video){const src=video.video||video.file||video.url||video.video_url;if(src)media='<video controls playsinline preload="metadata" src="'+src+'"></video>';}
-  if(!media&&image){const src=image.image||image.url||(image.thumbnails&&image.thumbnails.medium)||(image.thumbnails&&image.thumbnails.small);if(src)media='<img alt="'+exerciseName+'" src="'+src+'">';}
+  if(!media&&image){const src=image.image||image.url||(image.thumbnails&&image.thumbnails.medium)||(image.thumbnails&&image.thumbnails.small);if(src)media='<img alt="'+exerciseSearchName+'" src="'+src+'">';}
   demoMedia.innerHTML=media||'<div class="demo-empty">Este exercício ainda não tem vídeo/imagem disponível na biblioteca.</div>';
   const tr=(item.translations||[]).find(t=>String(t.language)=="2")||(item.translations||[])[0];
   const desc=cleanHtmlText((tr&&tr.description)||"");
