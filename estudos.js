@@ -94,12 +94,67 @@ M("p39_c9","Complete: Where ___ you last night? ___ you at home?",["were","were"
 M("p39_c10","Complete: ___ you at the gym last night after work? ___ you tired?",["were","were"])
 ];
 
+
+let activeQuestions=questions;
+let activeBlock=null;
+const studyBlocks=[
+ {id:"p35a",page:35,title:"Origem e nascimento",desc:"Where, When e What year",keys:["p35_q1","p35_q2","p35_q3","p35_q4","p35_q5"]},
+ {id:"p35b",page:35,title:"Escola e adolescência",desc:"Como você era e sua idade",keys:["p35_q6","p35_q7","p35_q8","p35_q9","p35_q10"]},
+ {id:"p35c",page:35,title:"Primeiro emprego",desc:"Descrições no passado",keys:["p35_q11","p35_q12","p35_q13"]},
+ {id:"p35d",page:35,title:"Família — mãe e pai",desc:"Nascimento e idade",keys:["p35_q14","p35_q15","p35_q16","p35_q17","p35_q18","p35_q19","p35_q20"]},
+ {id:"p35e",page:35,title:"Família — irmãos",desc:"Onde, quando e ano de nascimento",keys:["p35_q21","p35_q22","p35_q23","p35_q24","p35_q25","p35_q26"]},
+ {id:"p37a",page:37,title:"Sua escola",desc:"Lugar, estrutura e comida",keys:["p37_q1","p37_q2","p37_q3","p37_q4"]},
+ {id:"p37b",page:37,title:"Professor e matéria",desc:"Teacher, age, personality e subject",keys:["p37_q5","p37_q6","p37_q7","p37_q8","p37_q9"]},
+ {id:"p37c",page:37,title:"Pessoas e escola",desc:"Best friend, teachers, principal e court",keys:["p37_q10","p37_q11","p37_q12","p37_q13"]},
+ {id:"p38a",page:38,title:"Onde você estava? — 1",desc:"Manhã e tarde",keys:["p38_q1","p38_q2","p38_q3","p38_q4","p38_q5"]},
+ {id:"p38b",page:38,title:"Onde você estava? — 2",desc:"Aula e fim de semana",keys:["p38_q6","p38_q7","p38_q8","p38_q9"]},
+ {id:"p39a1",page:39,title:"Was / Were — parte 1",desc:"Frases afirmativas",keys:["p39_a1","p39_a2","p39_a3","p39_a4","p39_a5"]},
+ {id:"p39a2",page:39,title:"Was / Were — parte 2",desc:"Frases afirmativas",keys:["p39_a6","p39_a7","p39_a8","p39_a9","p39_a10"]},
+ {id:"p39b1",page:39,title:"Wasn't / Weren't — parte 1",desc:"Formas negativas",keys:["p39_b1","p39_b2","p39_b3","p39_b4","p39_b5"]},
+ {id:"p39b2",page:39,title:"Wasn't / Weren't — parte 2",desc:"Formas negativas",keys:["p39_b6","p39_b7","p39_b8","p39_b9","p39_b10"]},
+ {id:"p39c1",page:39,title:"Perguntas — parte 1",desc:"Was...? / Were...?",keys:["p39_c1","p39_c2","p39_c3","p39_c4","p39_c5"]},
+ {id:"p39c2",page:39,title:"Perguntas — parte 2",desc:"Was...? / Were...?",keys:["p39_c6","p39_c7","p39_c8","p39_c9","p39_c10"]}
+];
+const pageInfo={
+ 35:{title:"Página 35 — About you",subtitle:"Nascimento, idade, adolescência, primeiro emprego e família."},
+ 36:{title:"Página 36 — Past of TO BE — Part 2",subtitle:"Página de apoio e continuação do conteúdo de was / were."},
+ 37:{title:"Página 37 — At school",subtitle:"Escola, professores, matérias e descrições no passado."},
+ 38:{title:"Página 38 — Places",subtitle:"Where were you...? + in / at / on."},
+ 39:{title:"Página 39 — Practice",subtitle:"was / were / wasn't / weren't e perguntas."}
+};
+function renderBlocks(){
+ const box=document.getElementById("studyBlocks");if(!box)return;
+ box.innerHTML=studyBlocks.map(b=>'<div class="study-block"><span class="badge">PÁG. '+b.page+'</span><h3>'+b.title+'</h3><div class="muted">'+b.desc+' • '+b.keys.length+' questões</div><div class="actions"><button class="btn" onclick="startStudyBlock(\''+b.id+'\')">Estudar bloco</button><button class="btn ghost" onclick="openStudyPage('+b.page+')">Abrir página</button></div></div>').join("");
+}
+function blockQuestions(block){return block.keys.map(k=>questions.find(q=>q.key===k)).filter(Boolean)}
+window.startStudyBlock=async id=>{
+ const block=studyBlocks.find(b=>b.id===id);if(!block)return;
+ activeBlock=block;activeQuestions=blockQuestions(block);currentIndex=0;
+ const material=await ensureMaterial();
+ const {data:s,error}=await sb.from("study_sessions").insert({user_id:user.id,material_id:material.id,subject:"Inglês",lesson_key:"btb5_"+block.id}).select().single();
+ if(error)return alert(error.message);
+ currentSession=s;
+ document.querySelector(".study-area")?.scrollIntoView({behavior:"smooth",block:"start"});
+ renderQuestion();
+};
+window.openStudyPage=page=>{
+ const info=pageInfo[page]||{title:"Página "+page,subtitle:"BTB 5"};
+ pageBadge.textContent="PÁGINA "+page;pageTitle.textContent=info.title;pageSubtitle.textContent=info.subtitle;
+ const qs=studyBlocks.filter(b=>b.page===page).flatMap(b=>blockQuestions(b));
+ if(page===36){
+   pageContent.innerHTML='<div class="question-card"><h3>Past of TO BE — Part 2</h3><p class="muted">Esta página funciona como apoio do conteúdo antes dos exercícios da página 37.</p><div class="rule"><b>was</b>: I, he, she, it</div><div class="rule"><b>were</b>: you, we, they</div></div>';
+ }else{
+   pageContent.innerHTML=qs.length?'<div class="question-card"><h3>Conteúdo usado pelo agente</h3>'+qs.map((q,i)=>'<div class="page-question"><span class="badge">'+(i+1)+'</span> '+q.prompt+'</div>').join("")+'</div>':'<div class="empty">Sem exercícios mapeados nesta página.</div>';
+ }
+ pageModal.classList.add("open");pageModal.scrollTop=0;
+};
+window.closeStudyPage=()=>pageModal.classList.remove("open");
 async function auth(){
  const {data:{session}}=await sb.auth.getSession();
  if(session){user=session.user;boot();return}
  loginBtn.onclick=async()=>{const email=prompt("E-mail do LIFE OS");if(!email)return;const pass=prompt("Senha");if(!pass)return;const {error}=await sb.auth.signInWithPassword({email,password:pass});if(error)return alert(error.message);user=(await sb.auth.getUser()).data.user;boot();}
 }
-async function boot(){gate.style.display="none";shell.style.display="grid";await ensureMaterial();await loadHistory();}
+async function boot(){gate.style.display="none";shell.style.display="grid";await ensureMaterial();renderBlocks();await loadHistory();}
 async function ensureMaterial(){
  const {data}=await sb.from("study_materials").select("*").eq("subject","Inglês").eq("source_name","BTB - 5 - A.pdf").eq("page_start",35).eq("page_end",39).limit(1);
  if(data&&data.length)return data[0];
@@ -107,14 +162,13 @@ async function ensureMaterial(){
 }
 startStudyBtn.onclick=async()=>{
  if(currentSession){renderQuestion();return}
- const material=await ensureMaterial();
- const {data:s,error}=await sb.from("study_sessions").insert({user_id:user.id,material_id:material.id,subject:"Inglês",lesson_key:"btb5_p35_39_v2"}).select().single();
- if(error)return alert(error.message);currentSession=s;currentIndex=0;renderQuestion();
+ if(!activeBlock)return startStudyBlock("p35a");
+ return startStudyBlock(activeBlock.id);
 }
 function renderQuestion(){
- const q=questions[currentIndex];
- studyProgress.style.width=((currentIndex/questions.length)*100)+"%";
- questionArea.innerHTML='<div class="question-card"><div class="pillrow"><span class="badge">Questão '+(currentIndex+1)+' / '+questions.length+'</span></div><h2>'+q.prompt+'</h2><div class="muted">'+(q.tip||"Preencha corretamente em inglês.")+'</div><textarea id="answerBox" placeholder="Responda em inglês..."></textarea><div id="feedbackBox"></div><div class="study-nav"><button class="btn ghost" id="prevBtn">Anterior</button><button class="btn" id="checkBtn">Corrigir</button></div></div>';
+ const q=activeQuestions[currentIndex];
+ studyProgress.style.width=((currentIndex/activeQuestions.length)*100)+"%";
+ questionArea.innerHTML='<div class="question-card"><div class="pillrow"><span class="badge">Questão '+(currentIndex+1)+' / '+activeQuestions.length+'</span></div><h2>'+q.prompt+'</h2><div class="muted">'+(q.tip||"Preencha corretamente em inglês.")+'</div><textarea id="answerBox" placeholder="Responda em inglês..."></textarea><div id="feedbackBox"></div><div class="study-nav"><button class="btn ghost" id="prevBtn">Anterior</button><button class="btn" id="checkBtn">Corrigir</button></div></div>';
  prevBtn.onclick=()=>{if(currentIndex>0){currentIndex--;renderQuestion()}};
  checkBtn.onclick=checkAnswer;
 }
@@ -162,7 +216,7 @@ function validatePersonal(q,ans){
  }
 }
 async function checkAnswer(){
- const q=questions[currentIndex],ans=answerBox.value.trim();if(!ans)return alert("Digite sua resposta.");
+ const q=activeQuestions[currentIndex],ans=answerBox.value.trim();if(!ans)return alert("Digite sua resposta.");
  let correct=false,feedback="";
  if(q.type==="objective"){
   const accepted=[q.answer,...(q.alts||[])].map(normalize);
@@ -184,8 +238,8 @@ async function checkAnswer(){
    checkBtn.onclick=()=>{feedbackBox.innerHTML="";checkBtn.textContent="Corrigir";checkBtn.onclick=checkAnswer;answerBox.focus();};
    return;
  }
- checkBtn.textContent=currentIndex===questions.length-1?"Finalizar":"Próxima";
- checkBtn.onclick=async()=>{if(currentIndex<questions.length-1){currentIndex++;renderQuestion()}else await finishStudy()};
+ checkBtn.textContent=currentIndex===activeQuestions.length-1?"Finalizar":"Próxima";
+ checkBtn.onclick=async()=>{if(currentIndex<activeQuestions.length-1){currentIndex++;renderQuestion()}else await finishStudy()};
 }
 async function finishStudy(){
  const {data:a}=await sb.from("study_answers").select("is_correct").eq("session_id",currentSession.id);
@@ -196,7 +250,7 @@ async function finishStudy(){
  currentSession=null;await loadHistory();
 }
 async function loadHistory(){
- const {data:s}=await sb.from("study_sessions").select("started_at,finished_at,score,lesson_key").in("lesson_key",["btb5_p35_39","btb5_p35_39_v2"]).not("finished_at","is",null).order("started_at",{ascending:false}).limit(8);
+ const {data:s}=await sb.from("study_sessions").select("started_at,finished_at,score,lesson_key").eq("subject","Inglês").not("finished_at","is",null).order("started_at",{ascending:false}).limit(12);
  studyHistory.innerHTML=(s||[]).length?(s||[]).map(x=>'<div class="lesson"><b>'+new Date(x.started_at).toLocaleString("pt-BR")+'</b><div class="muted">Pontuação: '+Number(x.score||0).toFixed(0)+'%</div></div>').join(""):'<div class="muted">Nenhuma sessão concluída ainda.</div>';
 }
 auth();
