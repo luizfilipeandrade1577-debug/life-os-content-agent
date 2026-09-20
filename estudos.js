@@ -122,9 +122,18 @@ const pageInfo={
  38:{title:"Página 38 — Places",subtitle:"Where were you...? + in / at / on."},
  39:{title:"Página 39 — Practice",subtitle:"was / were / wasn't / weren't e perguntas."}
 };
-function renderBlocks(){
+function renderBlocks(statusMap={}){
  const box=document.getElementById("studyBlocks");if(!box)return;
- box.innerHTML=studyBlocks.map(b=>'<div class="study-block" id="block-'+b.id+'"><div class="top" style="margin:0"><span class="badge">PÁG. '+b.page+'</span><span class="badge" id="progress-'+b.id+'">0%</span></div><h3>'+b.title+'</h3><div class="muted">'+b.desc+' • '+b.keys.length+' questões</div><div class="progress section"><div id="bar-'+b.id+'" style="width:0%"></div></div><div class="actions"><button class="btn" onclick="startStudyBlock(\''+b.id+'\')">Estudar bloco</button><button class="btn ghost" onclick="openStudyPage('+b.page+')">Abrir página</button></div></div>').join("");
+ const rank={inprogress:0,pending:1,completed:2};
+ const ordered=[...studyBlocks].sort((a,b)=>(rank[statusMap[a.id]?.status||"pending"]-rank[statusMap[b.id]?.status||"pending"])||a.page-b.page);
+ box.innerHTML=ordered.map(b=>{
+   const meta=statusMap[b.id]||{pct:0,status:"pending"};
+   const cls=meta.status==="completed"?"completed":meta.status==="inprogress"?"inprogress":"";
+   const statusLabel=meta.status==="completed"?"CONCLUÍDA":meta.status==="inprogress"?"EM ANDAMENTO":"PENDENTE";
+   const statusCls=meta.status==="completed"?"status-done":meta.status==="inprogress"?"status-progress":"status-pending";
+   const actionLabel=meta.status==="completed"?"Revisar novamente":meta.status==="inprogress"?"Continuar revisão":"Estudar bloco";
+   return '<div class="study-block '+cls+'" id="block-'+b.id+'"><div class="top" style="margin:0"><span class="badge">PÁG. '+b.page+'</span><span class="badge '+statusCls+'">'+statusLabel+'</span></div><h3>'+b.title+'</h3><div class="muted">'+b.desc+' • '+b.keys.length+' questões</div><div class="study-summary"><span class="badge" id="progress-'+b.id+'">'+meta.pct+'%</span><span class="muted">'+Math.round((meta.pct/100)*b.keys.length)+' / '+b.keys.length+' concluídas</span></div><div class="progress section"><div id="bar-'+b.id+'" style="width:'+meta.pct+'%"></div></div><div class="actions"><button class="btn" onclick="startStudyBlock(\''+b.id+'\')">'+actionLabel+'</button><button class="btn ghost" onclick="openStudyPage('+b.page+')">Abrir página</button></div></div>';
+ }).join("");
 }
 function blockQuestions(block){return block.keys.map(k=>questions.find(q=>q.key===k)).filter(Boolean)}
 window.startStudyBlock=async id=>{
@@ -155,22 +164,28 @@ async function refreshBlockProgress(){
  const ids=(sessions||[]).map(s=>s.id);
  let answers=[];
  if(ids.length){const {data:a}=await sb.from("study_answers").select("session_id,question_key,is_correct").in("session_id",ids);answers=a||[]}
+ const statusMap={};
+ let pending=0,inprogress=0,completed=0;
  for(const b of studyBlocks){
    const blockSessions=(sessions||[]).filter(s=>s.lesson_key==="btb5_"+b.id);
    const sidSet=new Set(blockSessions.map(s=>s.id));
    const correctKeys=new Set(answers.filter(a=>sidSet.has(a.session_id)&&a.is_correct).map(a=>a.question_key).filter(k=>b.keys.includes(k)));
    const pct=Math.round((correctKeys.size/b.keys.length)*100);
-   const label=document.getElementById("progress-"+b.id),bar=document.getElementById("bar-"+b.id);
-   if(label)label.textContent=pct+"%";
-   if(bar)bar.style.width=pct+"%";
+   const status=pct>=100?"completed":pct>0?"inprogress":"pending";
+   statusMap[b.id]={pct,status,done:correctKeys.size};
+   if(status==="completed")completed++; else if(status==="inprogress")inprogress++; else pending++;
  }
+ renderBlocks(statusMap);
+ const summary=document.getElementById("studySummary");
+ if(summary)summary.innerHTML='<span class="badge status-pending">Pendentes: '+pending+'</span><span class="badge status-progress">Em andamento: '+inprogress+'</span><span class="badge status-done">Concluídas: '+completed+'</span>';
+ return statusMap;
 }
 async function auth(){
  const {data:{session}}=await sb.auth.getSession();
  if(session){user=session.user;boot();return}
  loginBtn.onclick=async()=>{const email=prompt("E-mail do LIFE OS");if(!email)return;const pass=prompt("Senha");if(!pass)return;const {error}=await sb.auth.signInWithPassword({email,password:pass});if(error)return alert(error.message);user=(await sb.auth.getUser()).data.user;boot();}
 }
-async function boot(){gate.style.display="none";shell.style.display="grid";await ensureMaterial();renderBlocks();await refreshBlockProgress();await loadHistory();}
+async function boot(){gate.style.display="none";shell.style.display="grid";await ensureMaterial();await refreshBlockProgress();await loadHistory();}
 async function ensureMaterial(){
  const {data}=await sb.from("study_materials").select("*").eq("subject","Inglês").eq("source_name","BTB - 5 - A.pdf").eq("page_start",35).eq("page_end",39).limit(1);
  if(data&&data.length)return data[0];
