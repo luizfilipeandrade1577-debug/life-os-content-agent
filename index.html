@@ -15,7 +15,7 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
 .badge{font-size:11px;padding:5px 8px;border-radius:99px;background:#10243e;color:#7abaff;white-space:nowrap}.badge.ok{background:#0e2a24;color:#63e1be}
 .section{display:none}.section.active{display:block}.form{display:grid;gap:10px}.form input,.form textarea,.form select{width:100%;background:#08101a;border:1px solid var(--line);color:white;padding:11px;border-radius:9px}.form textarea{min-height:120px;resize:vertical}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar .active{outline:1px solid var(--blue)}.empty{padding:34px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}.rule{border-left:3px solid var(--blue);padding-left:12px;margin:12px 0}
-.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{min-height:90px;border:1px solid var(--line);border-radius:9px;padding:8px;color:var(--muted)}.day b{color:white}.event{margin-top:8px;padding:6px;background:#10243e;color:#8bc2ff;border-radius:6px;font-size:11px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{min-height:90px;border:1px solid var(--line);border-radius:9px;padding:8px;color:var(--muted)}.day b{color:white}.event{margin-top:8px;padding:6px;background:#10243e;color:#8bc2ff;border-radius:6px;font-size:11px}.plan-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.plan-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#09111b}.plan-card.today{border-color:#1687ff;box-shadow:0 0 0 2px #1687ff18}.plan-card h4{margin:8px 0}.plan-card .need{margin-top:10px;padding:9px;border-radius:9px;background:#08101a;border:1px dashed #27425f}.plan-card .btn{width:100%;margin-top:10px}.today-brief{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}.today-brief .big{font-size:24px;font-weight:800;margin:8px 0}.checkline{padding:9px 0;border-bottom:1px solid var(--line)}.checkline:last-child{border-bottom:0}
 .modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:20px;z-index:20;overflow:auto}.modal.open{display:flex}.modal .card{width:min(760px,100%);max-height:92vh;overflow:auto}.account{display:flex;align-items:center;gap:8px}.statusbar{display:flex;gap:8px;align-items:center;margin-top:16px;font-size:12px}
 .login-gate{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 70% 20%,#0d2340 0,transparent 30%),var(--bg)}.login-box{width:min(460px,100%);padding:32px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 24px 80px #0007}.login-box .brand{font-size:28px}.login-box h1{margin:28px 0 8px}.login-box p{color:var(--muted);line-height:1.6}.login-box .btn{width:100%;margin-top:14px;padding:12px}.app.auth-hidden{display:none}
 .editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.editor-grid .full{grid-column:1/-1}.hint{font-size:12px;color:var(--muted)}
@@ -26,7 +26,7 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
 .slide-thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.slide-thumb{aspect-ratio:3/4;border-radius:10px;overflow:hidden;border:1px solid #20354d;cursor:pointer;background:#050a11;transition:.15s}.slide-thumb:hover{transform:translateY(-2px);border-color:#3f78ad}.slide-thumb img{width:100%;height:100%;object-fit:cover;display:block}.slide-thumb.active{outline:3px solid var(--blue);outline-offset:1px}
 .approval-notes{margin-top:12px}.approval-notes textarea{width:100%;min-height:80px;background:#08101a;border:1px solid var(--line);color:white;padding:10px;border-radius:9px}
 @media(max-width:850px){.slide-preview{grid-template-columns:1fr}.slide-thumbs{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:850px){.app{grid-template-columns:1fr}aside{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}nav{display:flex;overflow:auto;gap:4px}nav button{white-space:nowrap;width:auto}.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}main{padding:18px}.calendar{grid-template-columns:repeat(2,1fr)}.top{align-items:flex-start;flex-wrap:wrap}.editor-grid{grid-template-columns:1fr}}
+@media(max-width:850px){.plan-grid{grid-template-columns:1fr 1fr}.today-brief{grid-template-columns:1fr}.app{grid-template-columns:1fr}aside{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}nav{display:flex;overflow:auto;gap:4px}nav button{white-space:nowrap;width:auto}.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}main{padding:18px}.calendar{grid-template-columns:repeat(2,1fr)}.top{align-items:flex-start;flex-wrap:wrap}.editor-grid{grid-template-columns:1fr}}
 
 @media(max-width:700px){
   body{overflow-x:hidden}
@@ -78,6 +78,7 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
   #instagram .toolbar .btn{width:100%}
 }
 @media(max-width:430px){
+  .plan-grid{grid-template-columns:1fr}
   .grid{grid-template-columns:1fr}
   .calendar{grid-template-columns:1fr}
   .slide-thumbs{grid-template-columns:repeat(4,1fr)}
@@ -87,15 +88,37 @@ main{padding:28px;max-width:1250px;width:100%}.top{display:flex;justify-content:
 .insight-capture{display:grid;gap:10px}.insight-media-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.record-box{border:1px dashed var(--line);border-radius:10px;padding:12px;background:#08101a}.recording{color:#ff8fa3;font-weight:700}.capture-preview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.capture-preview img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}.insight-links{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.insight-links a{color:#8bc2ff;text-decoration:none}.audio-chip{display:inline-flex;align-items:center;gap:6px;color:#8bc2ff;font-size:12px;margin-top:6px}
 @media(max-width:700px){.insight-media-row{grid-template-columns:1fr}.record-box .toolbar{display:grid;grid-template-columns:1fr 1fr}.record-box .btn{width:100%}}
 </style></head><body>
-<div id="loginGate" class="login-gate"><div class="login-box"><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.15.1</div><h1>Bem-vindo</h1><p>Entre para acessar seu Dashboard, insights, conteúdos, aprovações e calendário. Seus dados ficam sincronizados no Supabase.</p><button class="btn" onclick="openAuth()">Entrar no LIFE OS</button></div></div>
+<div id="loginGate" class="login-gate"><div class="login-box"><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.16</div><h1>Bem-vindo</h1><p>Entre para acessar seu Dashboard, insights, conteúdos, aprovações e calendário. Seus dados ficam sincronizados no Supabase.</p><button class="btn" onclick="openAuth()">Entrar no LIFE OS</button></div></div>
 <div id="appShell" class="app auth-hidden">
-<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.15.1</div><div class="toolbar" style="margin-bottom:14px"><a class="btn ghost active" href="./index.html" onclick="lifeNav(event,'./index.html')">Instagram</a><a class="btn ghost" href="./treinos.html" onclick="lifeNav(event,'./treinos.html')">Treinos</a><a class="btn ghost" href="./estudos.html" onclick="lifeNav(event,'./estudos.html')">Estudos</a><a class="btn ghost" href="./empresa.html" onclick="lifeNav(event,'./empresa.html')">Empresa</a></div><nav id="nav"></nav><div class="statusbar"><span id="dbState" class="badge">LOCAL</span><span id="dbHint" class="muted">Carregando...</span></div></aside>
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">LIFE OS • v0.16</div><div class="toolbar" style="margin-bottom:14px"><a class="btn ghost active" href="./index.html" onclick="lifeNav(event,'./index.html')">Instagram</a><a class="btn ghost" href="./treinos.html" onclick="lifeNav(event,'./treinos.html')">Treinos</a><a class="btn ghost" href="./estudos.html" onclick="lifeNav(event,'./estudos.html')">Estudos</a><a class="btn ghost" href="./empresa.html" onclick="lifeNav(event,'./empresa.html')">Empresa</a></div><nav id="nav"></nav><div class="statusbar"><span id="dbState" class="badge">LOCAL</span><span id="dbHint" class="muted">Carregando...</span></div></aside>
 <main><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="desc">Visão geral do seu sistema de conteúdo.</div></div><div class="account"><span id="authInfo" class="muted">Sem login</span><button id="authBtn" class="btn ghost" onclick="openAuth()">Entrar</button><button class="btn" onclick="openInsight()">+ Novo insight</button></div></div>
 <section id="dashboard" class="section active"><div class="grid" id="metrics"></div><div class="two"><div class="card"><h3>Fila de produção</h3><div class="list" id="queue"></div></div><div class="card"><h3>Próximos passos</h3><div class="list"><div class="item"><span>Capturar novos insights</span><span class="badge">INBOX</span></div><div class="item"><span>Gerar e revisar conteúdo</span><span class="badge">EDITOR</span></div><div class="item"><span>Conectar Instagram API</span><span class="badge">ETAPA 2</span></div></div></div></div></section>
 <section id="insights" class="section"><div class="card"><h3>Inbox de Insights</h3><div class="list" id="insightList"></div></div></section>
 <section id="contents" class="section"><div class="card"><h3>Conteúdos</h3><div class="list" id="contentList"></div></div></section>
 <section id="approval" class="section"><div class="card"><h3>Aguardando aprovação</h3><div class="list" id="approvalList"></div></div></section>
-<section id="calendar" class="section"><div class="card"><h3>Calendário editorial</h3><div class="calendar" id="calendarGrid"></div></div></section>
+<section id="calendar" class="section">
+<div class="today-brief">
+  <div class="card">
+    <div class="muted">HOJE NO LIFE OS</div>
+    <div id="todayContentTitle" class="big">Carregando cronograma...</div>
+    <div id="todayContentMeta" class="muted"></div>
+    <div id="todayContentNeed" class="need" style="margin-top:12px"></div>
+    <div class="toolbar" style="margin-top:12px">
+      <button class="btn" onclick="feedTodayContent()">Alimentar agente</button>
+      <button class="btn ghost" onclick="go('insights')">Ver insights</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">O que você precisa me entregar</h3>
+    <div id="todayChecklist"></div>
+  </div>
+</div>
+<div class="card" style="margin-top:14px">
+  <div class="top"><div><h3 style="margin:0">Cronograma semanal</h3><div class="muted">O agente transforma o que você vive e aprende em conteúdo.</div></div></div>
+  <div id="contentPlanGrid" class="plan-grid"></div>
+</div>
+<div class="card" style="margin-top:14px"><h3>Calendário editorial</h3><div class="calendar" id="calendarGrid"></div></div>
+</section>
 <section id="analytics" class="section"><div class="grid"><div class="card metric">Publicados<b>0</b><span class="muted">Aguardando integração</span></div><div class="card metric">Alcance<b>—</b><span class="muted">Instagram Insights</span></div><div class="card metric">Engajamento<b>—</b><span class="muted">Instagram Insights</span></div><div class="card metric">Seguidores<b>—</b><span class="muted">Instagram Insights</span></div></div><div class="card" style="margin-top:14px"><h3>Métricas</h3><div class="empty">Os dados aparecerão aqui após a conexão oficial com o Instagram.</div></div></section>
 <section id="instagram" class="section"><div class="card"><div class="top"><div><h3>Instagram</h3><div class="muted">Conecte a conta profissional e publique conteúdos aprovados sem usar o Graph API Explorer.</div></div><span id="igBadge" class="badge">DESCONECTADO</span></div><div id="igConnected" class="list" style="margin-bottom:14px"></div><div class="form"><input id="igToken" type="password" placeholder="Cole aqui um novo token de acesso do Instagram"><div class="toolbar"><button class="btn" onclick="connectInstagram()">Conectar Instagram</button><button class="btn ghost" onclick="refreshInstagramStatus()">Verificar conexão</button></div><div class="hint">O token é enviado diretamente ao backend e armazenado criptografado no Supabase Vault. Ele não é salvo no navegador nem no GitHub.</div></div></div></section>
 <section id="rules" class="section"><div class="card"><h3>Identidade editorial v1</h3><div class="rule"><b>Posicionamento</b><br><span class="muted">IA, automação e gestão aplicadas a problemas reais de empresas.</span></div><div class="rule"><b>Narrativa</b><br><span class="muted">Aprender → aplicar → construir → medir → compartilhar.</span></div><div class="rule"><b>Visual</b><br><span class="muted">Preto/navy, branco, azul; moderno, profissional e natural.</span></div><div class="rule"><b>Conteúdo</b><br><span class="muted">Problemas reais, processos, REFRIFLOW, aprendizados, aplicações e cases.</span></div><div class="rule"><b>Regra central</b><br><span class="muted">IA cria → Luiz aprova → sistema publica. Nada é publicado sem aprovação.</span></div></div></section>
