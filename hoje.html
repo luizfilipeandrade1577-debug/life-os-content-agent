@@ -1,0 +1,41 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LIFE OS — Hoje</title>
+<style>
+:root{--bg:#060a10;--panel:#0d1420;--panel2:#111b2a;--text:#eef5ff;--muted:#8493a7;--blue:#1687ff;--line:#1d2b3e;--green:#63e1be;--amber:#ffc46b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 70% 8%,#10233e 0,transparent 28%),var(--bg);color:var(--text);font:14px Inter,system-ui,Arial}button,input,textarea{font:inherit}.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}aside{border-right:1px solid var(--line);background:#080d15;padding:22px 15px;position:sticky;top:0;height:100vh}.brand{font-size:21px;font-weight:900}.brand span{color:var(--blue)}.sub,.muted{color:var(--muted)}.sub{font-size:12px;margin:4px 0 18px}.modules{display:grid;gap:7px}.btn{display:inline-block;text-decoration:none;border:0;border-radius:10px;padding:10px 13px;background:var(--blue);color:#fff;font-weight:800;cursor:pointer}.btn.ghost{background:var(--panel2);color:var(--text)}.btn.active{outline:1px solid #4ca5ff}.side-note{margin-top:18px;padding:14px;border:1px solid var(--line);border-radius:13px;background:#0a111b}.side-note b{display:block;margin-bottom:5px}main{padding:26px;max-width:1250px;width:100%}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}.top h1{margin:0;font-size:30px}.badge{font-size:11px;padding:5px 8px;border-radius:999px;background:#10243e;color:#8fc6ff}.badge.ok{background:#0e2a24;color:var(--green)}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:rgba(13,20,32,.94);border:1px solid var(--line);border-radius:16px;padding:16px}.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:12px}.hero-main{background:linear-gradient(145deg,#10233d,#0a111b);border-color:#284e75}.kicker{font-size:11px;color:#7abaff;font-weight:800;letter-spacing:1px}.big{font-size:28px;font-weight:900;margin:6px 0}.progress{height:10px;background:#111b2a;border-radius:999px;overflow:hidden;margin-top:10px}.progress>div{height:100%;background:linear-gradient(90deg,#1687ff,#63e1be)}.section{margin-top:12px}.task-list{display:grid;gap:9px}.task{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:11px;background:#09111b}.task-main b{display:block;margin-bottom:4px}.quick{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.quick .btn{padding:8px 10px}.metric{font-size:24px;font-weight:900;margin-top:6px}.metric small{font-size:12px;color:var(--muted);font-weight:500}.input{width:100%;background:#08101a;border:1px solid var(--line);color:#fff;border-radius:9px;padding:10px;margin-top:8px}.login{max-width:460px;margin:100px auto}.login .card{padding:26px}.today-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-right:6px}.status-dot.done{background:var(--green)}
+@media(max-width:900px){.app{display:block}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}.modules{grid-template-columns:repeat(5,1fr)}.modules .btn{text-align:center;padding:9px 5px;font-size:12px}main{padding:12px}.grid{grid-template-columns:1fr 1fr}.hero,.today-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.modules{display:flex;overflow:auto}.modules .btn{flex:0 0 auto}.top{align-items:flex-start;flex-direction:column}.big{font-size:24px}.task{align-items:flex-start;flex-direction:column}}
+</style></head><body>
+<div id="gate" class="login"><div class="card"><div class="brand">LIFE <span>OS</span></div><div class="sub">HOJE • v0.1</div><h1>Seu dia em um lugar</h1><p class="muted">Treino, nutrição, estudo, conteúdo e empresa sincronizados.</p><button class="btn" id="loginBtn">Entrar</button></div></div>
+<div id="shell" class="app" style="display:none">
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">HOJE • v0.1</div>
+<div class="modules"><a class="btn active" href="./hoje.html">Hoje</a><a class="btn ghost" href="./index.html">Instagram</a><a class="btn ghost" href="./treinos.html">Treinos</a><a class="btn ghost" href="./estudos.html">Estudos</a><a class="btn ghost" href="./empresa.html">Empresa</a></div>
+<div class="side-note"><b>Regra do LIFE OS</b><span class="muted">O sistema organiza. Você executa. Os agentes ajudam no caminho.</span></div></aside>
+<main>
+<div class="top"><div><div class="kicker" id="todayLabel">HOJE</div><h1>Bom dia, Luiz</h1><div class="muted" id="dateLabel"></div></div><span class="badge ok">● LIFE OS ONLINE</span></div>
+
+<div class="hero">
+<div class="card hero-main"><div class="kicker">FOCO DO DIA</div><div class="big" id="focusText">Defina sua prioridade principal</div><input id="priorityInput" class="input" placeholder="Ex.: concluir proposta, treinar cedo, gravar conteúdo..."><div class="quick"><button class="btn" onclick="savePriority()">Salvar prioridade</button><button class="btn ghost" id="morningBtn" onclick="toggleMorning()">Check-in da manhã</button><button class="btn ghost" id="eveningBtn" onclick="toggleEvening()">Fechar o dia</button></div></div>
+<div class="card"><div class="kicker">PROGRESSO DO DIA</div><div class="big"><span id="dayProgress">0</span>%</div><div class="progress"><div id="dayProgressBar" style="width:0%"></div></div><div id="progressSummary" class="muted" style="margin-top:10px">Carregando...</div></div>
+</div>
+
+<div class="grid section">
+<div class="card"><div class="muted">Treino</div><div id="trainingMetric" class="metric">—</div><div id="trainingSub" class="muted">Carregando...</div><div class="quick"><a class="btn ghost" href="./treinos.html">Abrir treino</a></div></div>
+<div class="card"><div class="muted">Água</div><div class="metric"><span id="waterNow">0</span> / <span id="waterTarget">2500</span> <small>ml</small></div><div class="progress"><div id="waterBar" style="width:0%"></div></div><div class="quick"><button class="btn ghost" onclick="addWater(250)">+250</button><button class="btn ghost" onclick="addWater(500)">+500</button><button class="btn ghost" onclick="addWater(750)">+750</button></div></div>
+<div class="card"><div class="muted">Nutrição</div><div class="metric"><span id="calNow">0</span> / <span id="calTarget">3100</span> <small>kcal</small></div><div class="muted"><span id="proteinNow">0</span> / <span id="proteinTarget">155</span> g proteína</div><div class="quick"><button class="btn ghost" disabled>Nutrição em construção</button></div></div>
+<div class="card"><div class="muted">Estudo</div><div class="metric"><span id="studyNow">0</span> / <span id="studyTarget">20</span> <small>min</small></div><div id="studySub" class="muted">Inglês • BTB 5</div><div class="quick"><a class="btn ghost" href="./estudos.html">Estudar agora</a></div></div>
+</div>
+
+<div class="today-grid section">
+<div class="card"><div class="top"><div><h2 style="margin:0">Plano de hoje</h2><div class="muted">O que o LIFE OS encontrou nos seus módulos.</div></div></div><div id="todayTasks" class="task-list"></div></div>
+<div class="card"><div class="top"><div><h2 style="margin:0">Conteúdo de hoje</h2><div class="muted">O que alimentar no Content AI.</div></div></div><div id="contentToday"></div></div>
+</div>
+
+<div class="today-grid section">
+<div class="card"><div class="top"><div><h2 style="margin:0">Empresa</h2><div class="muted">Prioridades e tarefas dos agentes.</div></div><a class="btn ghost" href="./empresa.html">Abrir</a></div><div id="businessToday" class="task-list"></div></div>
+<div class="card"><div class="top"><div><h2 style="margin:0">Resumo rápido</h2><div class="muted">Estado do seu sistema hoje.</div></div></div><div id="dailySummary" class="task-list"></div></div>
+</div>
+</main></div>
+<script src="./config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./hoje.js?v=0.1"></script>
+</body></html>
