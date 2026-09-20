@@ -7,9 +7,9 @@
 @media(max-width:1100px){main>.grid{grid-template-columns:repeat(3,1fr)!important}}@media(max-width:1000px){.brain-layout{grid-template-columns:1fr}.brain{min-height:560px}.grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:760px){.app{display:block}aside{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line);padding:14px 12px}.modules{display:grid;grid-template-columns:repeat(4,1fr)}.modules .btn{text-align:center;padding:9px 5px;font-size:12px}main{padding:12px}.top{align-items:flex-start;flex-wrap:wrap}.brain{min-height:auto;padding:12px;background:#09111b}.brain svg{display:none}.node,.node.center{position:static;transform:none!important;width:100%;min-height:auto;margin-bottom:8px;text-align:left}.brain .node{display:block}.split,.grid{grid-template-columns:1fr}.modal{padding:0;align-items:stretch}.modal .card{width:100%;max-height:none;min-height:100dvh;border:0;border-radius:0}.metric{font-size:24px}}
 </style></head><body>
-<div id="gate" class="card login"><div class="brand">LIFE <span>OS</span></div><div class="sub">EMPRESA • v0.2.1</div><h1>Business Brain</h1><p class="muted">Seu escritório virtual com agentes, tarefas, aprovações e memória operacional.</p><button class="btn" id="loginBtn">Entrar</button></div>
+<div id="gate" class="card login"><div class="brand">LIFE <span>OS</span></div><div class="sub">EMPRESA • v0.3.1</div><h1>Business Brain</h1><p class="muted">Seu escritório virtual com agentes, tarefas, aprovações e memória operacional.</p><button class="btn" id="loginBtn">Entrar</button></div>
 <div id="shell" class="app" style="display:none">
-<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">EMPRESA • v0.2.1</div>
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">EMPRESA • v0.3.1</div>
 <div class="modules"><a class="btn ghost" href="./index.html" onclick="lifeNav(event,'./index.html')">Instagram</a><a class="btn ghost" href="./treinos.html" onclick="lifeNav(event,'./treinos.html')">Treinos</a><a class="btn ghost" href="./estudos.html" onclick="lifeNav(event,'./estudos.html')">Estudos</a><a class="btn ghost active" href="./empresa.html" onclick="lifeNav(event,'./empresa.html')">Empresa</a></div>
 <div class="card"><div class="muted">Posicionamento</div><b>Transformamos informações soltas em processos inteligentes.</b><div class="muted" style="margin-top:8px">Informação centralizada • processos eficientes • equipes produtivas • decisões assertivas</div></div>
 </aside>
@@ -43,8 +43,18 @@
 </div>
 
 <div class="section split">
+<div class="card"><div class="top"><div><h2 style="margin:0">Canais comerciais</h2><div class="muted">Agentes conectados aos canais que geram demanda, conversas e vendas.</div></div></div><div id="channelList" class="panel-list"></div></div>
+<div class="card"><div class="top"><div><h2 style="margin:0">Responsabilidades dos agentes</h2><div class="muted">Quem cuida de cada etapa do Instagram, WhatsApp e pipeline.</div></div></div><div id="channelAgentList" class="panel-list"></div></div>
+</div>
+
+<div class="section split">
 <div class="card"><div class="top"><div><h2 style="margin:0">Fila de trabalho</h2><div class="muted">Tarefas reais dos agentes e setores.</div></div></div><div id="taskList"></div></div>
 <div class="card"><div class="top"><div><h2 style="margin:0">Aprovações humanas</h2><div class="muted">IA prepara → você aprova → sistema executa.</div></div></div><div id="approvalList"></div></div>
+</div>
+
+<div class="section split">
+<div class="card"><div class="top"><div><h2 style="margin:0">Contatos & conversas</h2><div class="muted">Leads, contatos e follow-ups vindos de Instagram, WhatsApp e prospecção.</div></div></div><div id="contactList" class="panel-list"></div></div>
+<div class="card"><div class="top"><div><h2 style="margin:0">Fluxo comercial automático</h2><div class="muted">A IA prepara e organiza; ações externas continuam sob aprovação.</div></div></div><div class="task"><b>1. Atrair</b><div class="muted">Content AI → posts, stories, reels e CTAs no Instagram.</div></div><div class="task"><b>2. Prospectar</b><div class="muted">SDR AI → lista de leads + mensagem de WhatsApp preparada.</div></div><div class="task"><b>3. Atender</b><div class="muted">Sales AI / CS AI → resposta, qualificação, follow-up e registro.</div></div><div class="task"><b>4. Converter</b><div class="muted">Proposal AI → escopo e proposta comercial após diagnóstico.</div></div></div>
 </div>
 
 <div class="section split">
@@ -63,6 +73,6 @@
 <div id="projectModal" class="modal"><div class="card"><div class="top"><div><h2 style="margin:0">Novo projeto</h2><div class="muted">Crie um objetivo que poderá acionar vários agentes.</div></div><button class="btn ghost" onclick="closeProjectModal()">Fechar</button></div><div class="form"><input id="projectName" placeholder="Nome do projeto"><input id="projectClient" placeholder="Cliente (opcional)"><textarea id="projectObjective" placeholder="Objetivo e resultado esperado"></textarea><select id="projectPriority"><option value="normal">Prioridade normal</option><option value="high">Alta</option><option value="urgent">Urgente</option><option value="low">Baixa</option></select><button class="btn" onclick="createProject()">Criar projeto</button></div></div></div>
 
 <div id="taskModal" class="modal"><div class="card"><div class="top"><div><h2 style="margin:0">Nova tarefa</h2><div class="muted">Delegue trabalho para um setor ou agente.</div></div><button class="btn ghost" onclick="closeTaskModal()">Fechar</button></div><div class="form"><input id="taskTitle" placeholder="Ex.: Pesquisar 20 empresas de contabilidade"><textarea id="taskDesc" placeholder="Contexto, objetivo e resultado esperado"></textarea><select id="taskSector"><option value="comercial">Comercial</option><option value="operacoes">Operações</option><option value="financeiro">Financeiro</option><option value="cs">Customer Success</option><option value="marketing">Marketing</option><option value="direcao">Direção</option></select><select id="taskAgent"><option value="">Selecionar agente automaticamente</option></select><select id="taskProject"><option value="">Sem projeto</option></select><select id="taskPriority"><option value="normal">Prioridade normal</option><option value="high">Alta</option><option value="urgent">Urgente</option><option value="low">Baixa</option></select><button class="btn" onclick="createTask()">Criar tarefa</button></div></div></div>
-<script src="./config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./empresa.js?v=0.2.1"></script>
-<script>const LIFE_OS_BUILD="20260920-business-v021";function lifeNav(e,path){e.preventDefault();location.href=path+"?b="+LIFE_OS_BUILD}if(location.search.includes("b=")){history.replaceState(null,"",location.pathname)}</script>
+<script src="./config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./empresa.js?v=0.3.1"></script>
+<script>const LIFE_OS_BUILD="20260920-business-v031";function lifeNav(e,path){e.preventDefault();location.href=path+"?b="+LIFE_OS_BUILD}if(location.search.includes("b=")){history.replaceState(null,"",location.pathname)}</script>
 </body></html>
