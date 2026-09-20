@@ -10,17 +10,33 @@
 
 .study-blocks{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.study-block{padding:14px;border:1px solid var(--line);border-radius:12px;background:#09111b}.study-block h3{margin:8px 0 4px}.study-block.completed{border-color:#245c50;background:#0a1716}.study-block.inprogress{border-color:#31587e}.status-done{background:#0e2a24;color:var(--green)}.status-pending{background:#241b0d;color:#ffc46b}.status-progress{background:#10243e;color:#7abaff}.study-summary{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}.study-block .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.page-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}.page-btn{background:#10243e;color:#8fc6ff;border:1px solid #21476c;border-radius:9px;padding:8px 10px;font-weight:700;cursor:pointer}.page-modal{position:fixed;inset:0;background:#000d;display:none;z-index:90;overflow-y:auto;-webkit-overflow-scrolling:touch}.page-modal.open{display:block}.page-sheet{width:min(760px,100%);margin:30px auto;background:#09111b;border:1px solid var(--line);border-radius:16px;padding:18px}.page-question{padding:10px 0;border-bottom:1px solid var(--line)}.page-question:last-child{border-bottom:0}
 @media(max-width:700px){.study-blocks{grid-template-columns:1fr}.page-sheet{margin:0;min-height:100dvh;border:0;border-radius:0}.page-sheet>.top{position:sticky;top:0;background:#09111b;z-index:2;padding:8px 0}}
+
+.lesson-hero{background:linear-gradient(180deg,#0e1b2b,#09111b);border:1px solid #21476c;border-radius:18px;padding:20px;min-height:280px;display:flex;flex-direction:column;justify-content:space-between}.lesson-hero h2{font-size:30px;margin:8px 0}.lesson-hero .big-example{font-size:25px;font-weight:800;line-height:1.35;margin:18px 0}.lesson-hero .microcopy{font-size:13px;color:var(--muted)}.lesson-actions{display:flex;gap:8px;flex-wrap:wrap}.lesson-actions .btn{min-height:44px}.lesson-player{position:fixed;inset:0;background:#05080d;display:none;z-index:120;overflow-y:auto;-webkit-overflow-scrolling:touch}.lesson-player.open{display:block}.lesson-player-inner{max-width:760px;margin:0 auto;min-height:100dvh;padding:18px;display:flex;flex-direction:column}.lesson-player-top{position:sticky;top:0;background:#05080dee;backdrop-filter:blur(10px);z-index:2;padding:10px 0}.lesson-stage{flex:1;display:flex;align-items:center;justify-content:center;padding:18px 0}.lesson-card{width:100%;background:#0b1420;border:1px solid var(--line);border-radius:20px;padding:20px}.lesson-card h1{font-size:30px;margin:0 0 10px}.lesson-card .phrase{font-size:28px;font-weight:800;line-height:1.35;margin:20px 0}.lesson-card .explain{font-size:17px;line-height:1.55;color:#d7e3ef}.lesson-card textarea{width:100%;min-height:120px;background:#07101a;border:1px solid var(--line);color:#fff;border-radius:12px;padding:12px;font-size:16px}.lesson-footer{display:flex;gap:8px;margin-top:16px}.lesson-footer .btn{flex:1;min-height:48px}.listen-btn{display:inline-flex;align-items:center;gap:8px}.step-dots{display:flex;gap:5px;flex-wrap:wrap}.step-dot{height:5px;flex:1;min-width:10px;background:#172334;border-radius:999px}.step-dot.done{background:#1687ff}.step-dot.current{background:#63e1be}.mode-badge{font-size:11px;padding:5px 8px;border-radius:999px;background:#10243e;color:#8fc6ff}.answer-choice{display:block;width:100%;text-align:left;margin:8px 0;padding:13px;border-radius:10px;border:1px solid var(--line);background:#0a111c;color:#fff;cursor:pointer}.answer-choice.selected{border-color:#1687ff;background:#10243e}.hero-progress{height:8px;background:#111b2a;border-radius:999px;overflow:hidden}.hero-progress>div{height:100%;background:linear-gradient(90deg,#1687ff,#63e1be);width:0}.speak-note{font-size:12px;color:var(--muted);margin-top:8px}
+@media(max-width:700px){.lesson-hero{min-height:240px;padding:16px}.lesson-hero h2{font-size:24px}.lesson-hero .big-example{font-size:22px}.lesson-player-inner{padding:12px}.lesson-card{border-radius:14px;padding:16px}.lesson-card h1{font-size:24px}.lesson-card .phrase{font-size:24px}.lesson-footer{position:sticky;bottom:0;background:#05080d;padding:10px 0}}
 </style></head><body>
-<div id="gate" class="card login"><div class="brand">LIFE <span>OS</span></div><div class="sub">ESTUDOS • v0.5.1</div><h1>Estudos</h1><p class="muted">Use o mesmo login do LIFE OS.</p><button class="btn" id="loginBtn">Entrar</button></div>
+<div id="gate" class="card login"><div class="brand">LIFE <span>OS</span></div><div class="sub">ESTUDOS • v0.6</div><h1>Estudos</h1><p class="muted">Use o mesmo login do LIFE OS.</p><button class="btn" id="loginBtn">Entrar</button></div>
 <div id="shell" class="app" style="display:none">
-<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">ESTUDOS • v0.5.1</div>
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">ESTUDOS • v0.6</div>
 <div class="modules"><a class="btn ghost" href="./index.html" onclick="lifeNav(event,'./index.html')">Instagram</a><a class="btn ghost" href="./treinos.html" onclick="lifeNav(event,'./treinos.html')">Treinos</a><a class="btn ghost active" href="./estudos.html" onclick="lifeNav(event,'./estudos.html')">Estudos</a><a class="btn ghost" href="./empresa.html" onclick="lifeNav(event,'./empresa.html')">Empresa</a></div>
 <div class="card"><div class="muted">Foco atual</div><b>Inglês</b><div class="muted" style="margin-top:6px">BTB 5 — páginas 35 a 39</div></div>
 </aside>
 <main>
 <div class="top"><div><h1>Agente de Estudos</h1><div class="muted">Revisão guiada, exercícios e acompanhamento da sua evolução.</div></div><span class="badge ok">ONLINE</span></div>
 
-<div class="grid">
+<div class="lesson-hero section">
+  <div>
+    <span class="badge">AULA ATUAL</span>
+    <h2>Past of “to be”</h2>
+    <div class="microcopy">BTB 5 • páginas 35–39</div>
+    <div class="big-example">I was born in Brazil.<br>You were at school.</div>
+    <div class="hero-progress"><div id="lessonHeroProgress"></div></div>
+  </div>
+  <div class="lesson-actions">
+    <button class="btn" id="continueLessonBtn">▶ Continuar aula</button>
+    <button class="btn ghost" onclick="startQuickReview()">Revisão rápida</button>
+  </div>
+</div>
+<div class="grid section">
 <div class="card"><div class="muted">Matéria</div><div class="metric">Inglês</div></div>
 <div class="card"><div class="muted">Livro</div><div class="metric">BTB 5</div></div>
 <div class="card"><div class="muted">Bloco atual</div><div class="metric">35–39</div></div>
@@ -59,9 +75,25 @@
 <div class="section card"><h2>Histórico</h2><div id="studyHistory" class="lesson-list"><div class="muted">Nenhuma sessão concluída ainda.</div></div></div>
 </main></div>
 <div id="pageModal" class="page-modal"><div class="page-sheet"><div class="top"><div><span id="pageBadge" class="badge">PÁGINA</span><h2 id="pageTitle">Página</h2><div id="pageSubtitle" class="muted"></div></div><button class="btn ghost" onclick="closeStudyPage()">Fechar</button></div><div id="pageContent"></div></div></div>
-<script src="./config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./estudos.js?v=0.5"></script>
+<script src="./config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./estudos.js?v=0.6"></script>
 <script>
 const LIFE_OS_BUILD="20260919-2252";
 function lifeNav(e,path){e.preventDefault();location.href=path+"?b="+LIFE_OS_BUILD}
 if(location.search.includes("b=")){history.replaceState(null,"",location.pathname)}
-</script></body></html>
+</script><div id="lessonPlayer" class="lesson-player">
+  <div class="lesson-player-inner">
+    <div class="lesson-player-top">
+      <div class="top" style="margin:0 0 8px">
+        <div><span id="lessonModeBadge" class="mode-badge">AULA</span><div id="lessonStepTitle" class="muted" style="margin-top:6px"></div></div>
+        <button class="btn ghost" id="closeLessonBtn">Fechar</button>
+      </div>
+      <div id="lessonDots" class="step-dots"></div>
+    </div>
+    <div class="lesson-stage"><div id="lessonCard" class="lesson-card"></div></div>
+    <div class="lesson-footer">
+      <button class="btn ghost" id="lessonPrevBtn">Voltar</button>
+      <button class="btn" id="lessonNextBtn">Continuar</button>
+    </div>
+  </div>
+</div>
+</body></html>
