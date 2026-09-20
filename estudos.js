@@ -288,5 +288,101 @@ async function loadHistory(){
  const {data:s}=await sb.from("study_sessions").select("started_at,finished_at,score,lesson_key").eq("subject","Inglês").not("finished_at","is",null).order("started_at",{ascending:false}).limit(12);
  studyHistory.innerHTML=(s||[]).length?(s||[]).map(x=>'<div class="lesson"><b>'+new Date(x.started_at).toLocaleString("pt-BR")+'</b><div class="muted">Pontuação: '+Number(x.score||0).toFixed(0)+'%</div></div>').join(""):'<div class="muted">Nenhuma sessão concluída ainda.</div>';
 }
+
+const lessonSteps=[
+ {type:"teach",title:"Was ou Were?",eyebrow:"REGRA",body:"No passado do verbo to be, usamos <b>was</b> com I / he / she / it e <b>were</b> com you / we / they.",phrase:"I was tired. • They were at school.",speak:"I was tired. They were at school."},
+ {type:"teach",title:"Falar onde nasceu",eyebrow:"PÁG. 35",body:"Para dizer onde alguém nasceu, use <b>was/were born in</b> + lugar.",phrase:"I was born in Campinas.",speak:"I was born in Campinas."},
+ {type:"practice",title:"Sua vez",eyebrow:"PRÁTICA",prompt:"Where were you born?",hint:"Responda com: I was born in ...",validator:"born_where"},
+ {type:"teach",title:"Quando nasceu",eyebrow:"PÁG. 35",body:"Para ano ou mês, normalmente usamos <b>in</b>. Para uma data específica, usamos <b>on</b>.",phrase:"I was born in 2003. • I was born on July 23rd.",speak:"I was born in 2003. I was born on July twenty third."},
+ {type:"practice",title:"Sua vez",eyebrow:"PRÁTICA",prompt:"What year were you born?",hint:"Responda com: I was born in + year.",validator:"born_year"},
+ {type:"teach",title:"Como você era",eyebrow:"PÁG. 35",body:"Use <b>was</b> + adjetivo para descrever como você era no passado.",phrase:"I was shy. • I was a good student.",speak:"I was shy. I was a good student."},
+ {type:"practice",title:"Sua vez",eyebrow:"PRÁTICA",prompt:"What were you like in high school?",hint:"Ex.: I was quiet and responsible.",validator:"i_was"},
+ {type:"teach",title:"At school",eyebrow:"PÁGS. 36–37",body:"Para falar sobre escola, professores e matérias, use was/were para descrever pessoas e lugares.",phrase:"My favorite subject was math. • The teachers were nice.",speak:"My favorite subject was math. The teachers were nice."},
+ {type:"practice",title:"Sua vez",eyebrow:"PRÁTICA",prompt:"What was your favorite subject?",hint:"Responda com: My favorite subject was ...",validator:"favorite_subject"},
+ {type:"teach",title:"Where were you...?",eyebrow:"PÁG. 38",body:"Para dizer onde você estava, use <b>I was at/in/on...</b>.",phrase:"I was at home. • I was in class. • I was on the bus.",speak:"I was at home. I was in class. I was on the bus."},
+ {type:"practice",title:"Sua vez",eyebrow:"PRÁTICA",prompt:"Where were you last night?",hint:"Use: I was at/in/on ...",validator:"where_were"},
+ {type:"teach",title:"Negativo",eyebrow:"PÁG. 39",body:"As formas negativas são <b>wasn't</b> e <b>weren't</b>.",phrase:"I wasn't at home. • They weren't at work.",speak:"I wasn't at home. They weren't at work."},
+ {type:"choice",title:"Escolha a resposta",eyebrow:"PÁG. 39",prompt:"The kids ___ at school this morning.",choices:["was","were","wasn't"],answer:"were"},
+ {type:"choice",title:"Escolha a resposta",eyebrow:"PÁG. 39",prompt:"I ___ at home when you arrived. I was at work.",choices:["was","wasn't","were"],answer:"wasn't"},
+ {type:"teach",title:"Perguntas",eyebrow:"PÁG. 39",body:"Em perguntas, coloque <b>Was/Were</b> antes do sujeito.",phrase:"Were you born in Brazil? • Was your father at home?",speak:"Were you born in Brazil? Was your father at home?"},
+ {type:"choice",title:"Último exercício",eyebrow:"REVISÃO",prompt:"___ you at the gym last night?",choices:["Was","Were","Did"],answer:"Were"}
+];
+let lessonIndex=0,lessonAnswers={},lessonSelected=null;
+function lessonSpeak(text){
+ if(!("speechSynthesis" in window))return alert("Áudio não disponível neste navegador.");
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(text);u.lang="en-US";u.rate=.86;u.pitch=1;
+ const voices=speechSynthesis.getVoices();const pref=voices.find(v=>/en-US/i.test(v.lang))||voices.find(v=>/^en/i.test(v.lang));if(pref)u.voice=pref;
+ speechSynthesis.speak(u);
+}
+function lessonValidate(step,answer){
+ const n=normalize(answer);
+ if(step.validator==="born_where")return /^i was born in\s+.+/.test(n);
+ if(step.validator==="born_year")return /^i was born in\s+(19|20)\d{2}$/.test(n);
+ if(step.validator==="i_was")return /^i was\s+.+/.test(n);
+ if(step.validator==="favorite_subject")return /^my favorite subject was\s+.+/.test(n);
+ if(step.validator==="where_were")return /^i was (at|in|on)\s+.+/.test(n);
+ return true;
+}
+function renderLessonPlayer(){
+ const step=lessonSteps[lessonIndex];lessonSelected=null;
+ lessonStepTitle.textContent=(lessonIndex+1)+" de "+lessonSteps.length+" • "+step.title;
+ lessonModeBadge.textContent=step.eyebrow||"AULA";
+ lessonDots.innerHTML=lessonSteps.map((_,i)=>'<span class="step-dot '+(i<lessonIndex?"done":i===lessonIndex?"current":"")+'"></span>').join("");
+ lessonPrevBtn.disabled=lessonIndex===0;
+ lessonNextBtn.textContent=lessonIndex===lessonSteps.length-1?"Concluir":"Continuar";
+ let body='<span class="mode-badge">'+(step.eyebrow||"AULA")+'</span><h1>'+step.title+'</h1>';
+ if(step.type==="teach"){
+   body+='<div class="explain">'+step.body+'</div><div class="phrase">'+step.phrase+'</div><button class="btn ghost listen-btn" onclick="lessonSpeak('+JSON.stringify(step.speak)+')">🔊 Ouvir exemplo</button><div class="speak-note">Ouça mais de uma vez e repita em voz alta.</div>';
+ }else if(step.type==="practice"){
+   body+='<div class="explain">'+step.prompt+'</div><div class="muted" style="margin-top:8px">'+step.hint+'</div><textarea id="lessonAnswer" placeholder="Responda em inglês...">'+(lessonAnswers[lessonIndex]||"")+'</textarea><div id="lessonFeedback"></div>';
+ }else if(step.type==="choice"){
+   body+='<div class="phrase" style="font-size:24px">'+step.prompt+'</div>'+step.choices.map(c=>'<button class="answer-choice" data-value="'+c.replace(/"/g,"&quot;")+'" onclick="selectLessonChoice(this)">'+c+'</button>').join("")+'<div id="lessonFeedback"></div>';
+ }
+ lessonCard.innerHTML=body;
+}
+window.selectLessonChoice=btn=>{
+ document.querySelectorAll(".answer-choice").forEach(x=>x.classList.remove("selected"));btn.classList.add("selected");lessonSelected=btn.dataset.value;
+};
+function openLessonPlayer(index=0){lessonIndex=index;lessonPlayer.classList.add("open");renderLessonPlayer()}
+function closeLessonPlayer(){speechSynthesis?.cancel();lessonPlayer.classList.remove("open")}
+async function advanceLesson(){
+ const step=lessonSteps[lessonIndex];
+ if(step.type==="practice"){
+   const val=(document.getElementById("lessonAnswer")?.value||"").trim();if(!val)return alert("Responda antes de continuar.");
+   if(!lessonValidate(step,val)){lessonFeedback.innerHTML='<div class="feedback fix">Ainda não. '+step.hint+'</div>';return}
+   lessonAnswers[lessonIndex]=val;lessonFeedback.innerHTML='<div class="feedback good">Correto. Boa estrutura.</div>';
+ }else if(step.type==="choice"){
+   if(!lessonSelected)return alert("Escolha uma resposta.");
+   if(normalize(lessonSelected)!==normalize(step.answer)){lessonFeedback.innerHTML='<div class="feedback fix">Tente novamente.</div>';return}
+   lessonAnswers[lessonIndex]=lessonSelected;lessonFeedback.innerHTML='<div class="feedback good">Correto.</div>';
+ }
+ if(lessonIndex<lessonSteps.length-1){lessonIndex++;renderLessonPlayer();updateHeroProgress()}
+ else{await finishGuidedLesson()}
+}
+async function finishGuidedLesson(){
+ updateHeroProgress(100);closeLessonPlayer();
+ try{
+   const material=await ensureMaterial();
+   const {data:s,error}=await sb.from("study_sessions").insert({user_id:user.id,material_id:material.id,subject:"Inglês",lesson_key:"btb5_guided_35_39",finished_at:new Date().toISOString(),score:100,notes:"Aula guiada interativa concluída."}).select().single();
+   if(error)throw error;
+   for(const [idx,ans] of Object.entries(lessonAnswers)){
+     const step=lessonSteps[Number(idx)];
+     await sb.from("study_answers").upsert({user_id:user.id,session_id:s.id,question_key:"guided_"+idx,prompt:step.prompt||step.title,answer:ans,is_correct:true,feedback:"Correto"},{onConflict:"session_id,question_key"});
+   }
+ }catch(e){console.warn(e)}
+ alert("Aula concluída e salva no LIFE OS Estudos.");
+ await loadHistory();
+}
+function updateHeroProgress(force=null){
+ const pct=force??Math.round((lessonIndex/Math.max(1,lessonSteps.length-1))*100);
+ const bar=document.getElementById("lessonHeroProgress");if(bar)bar.style.width=pct+"%";
+}
+window.startQuickReview=()=>openLessonPlayer(Math.max(0,lessonSteps.length-5));
+if(document.getElementById("continueLessonBtn"))continueLessonBtn.onclick=()=>openLessonPlayer(lessonIndex);
+if(document.getElementById("closeLessonBtn"))closeLessonBtn.onclick=closeLessonPlayer;
+if(document.getElementById("lessonPrevBtn"))lessonPrevBtn.onclick=()=>{if(lessonIndex>0){lessonIndex--;renderLessonPlayer();updateHeroProgress()}};
+if(document.getElementById("lessonNextBtn"))lessonNextBtn.onclick=advanceLesson;
+
 auth();
 // pages-rebuild: 2026-09-20T00:20-03:00
