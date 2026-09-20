@@ -76,10 +76,10 @@ main{padding:28px;max-width:1200px;width:100%}.top{display:flex;justify-content:
 @media(max-width:700px){.viewtabs{position:sticky;top:0;z-index:12;background:var(--bg);padding:8px 0}.viewtabs .btn{flex:1}.evolution-select{width:100%;min-width:0;font-size:16px}.evolution-metrics{grid-template-columns:1fr 1fr!important}.chartbox{padding:8px}.svg-chart{height:190px}.week-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:430px){.evolution-metrics{grid-template-columns:1fr!important}.week-grid{grid-template-columns:1fr 1fr}}
 </style></head><body>
-<div id="gate" class="card login"><div class="brand">LIFE <span>OS</span></div><div class="sub">TREINOS • v0.8.2</div><h1>Treinos</h1><p class="muted">Use o mesmo login do LIFE OS.</p><button class="btn" id="loginBtn">Entrar</button></div>
+<div id="gate" class="card login"><div class="brand">LIFE <span>OS</span></div><div class="sub">TREINOS • v0.8.3</div><h1>Treinos</h1><p class="muted">Use o mesmo login do LIFE OS.</p><button class="btn" id="loginBtn">Entrar</button></div>
 <div id="shell" class="app" style="display:none">
-<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">TREINOS • v0.8.2</div>
-<div class="modules"><a class="btn ghost" href="./index.html" onclick="lifeNav(event,'./index.html')">Instagram</a><a class="btn ghost active" href="./treinos.html" onclick="lifeNav(event,'./treinos.html')">Treinos</a><a class="btn ghost" href="./estudos.html" onclick="lifeNav(event,'./estudos.html')">Estudos</a></div>
+<aside><div class="brand">LIFE <span>OS</span></div><div class="sub">TREINOS • v0.8.3</div>
+<div class="modules"><a class="btn ghost" href="./index.html" onclick="lifeNav(event,'./index.html')">Instagram</a><a class="btn ghost active" href="./treinos.html" onclick="lifeNav(event,'./treinos.html')">Treinos</a><a class="btn ghost" href="./estudos.html" onclick="lifeNav(event,'./estudos.html')">Estudos</a><a class="btn ghost" href="./empresa.html" onclick="lifeNav(event,'./empresa.html')">Empresa</a></div>
 <div class="card"><div class="muted">Objetivo</div><b>Ganho de massa</b><div class="muted" style="margin-top:8px">71 kg → meta inicial 75 kg</div></div><div class="card section"><div class="muted">Registrar peso</div><div class="weightrow" style="margin-top:10px"><input id="weightInput" inputmode="decimal" placeholder="kg"><button class="btn" id="saveWeightBtn">Salvar</button></div><div id="weightHint" class="muted" style="margin-top:8px"></div></div>
 </aside>
 <main>
@@ -88,7 +88,7 @@ main{padding:28px;max-width:1200px;width:100%}.top{display:flex;justify-content:
 <div id="trainingView">
 <div id="todayCard" class="card section" style="border-color:#21476c"><div class="top" style="margin:0"><div><span class="badge">HOJE</span><h2 id="todayTitle" style="margin:10px 0 4px">Treino de hoje</h2><div id="todayText" class="muted"></div></div><button class="btn" id="todayBtn">Iniciar treino de hoje</button></div></div><div id="resumeCard" class="card section" style="display:none;border-color:#245c50"><div class="top" style="margin:0"><div><b>Treino em andamento</b><div id="resumeText" class="muted"></div></div><button class="btn" id="resumeBtn">Retomar treino</button></div></div><div class="grid" id="routineGrid"></div>
 <div class="section card"><div class="top"><div><h2 id="routineTitle">Rotina</h2><div id="routineDay" class="muted"></div></div><button class="btn" id="startBtn">Iniciar treino</button></div><div id="exerciseList"></div></div>
-<div class="section grid" style="grid-template-columns:repeat(3,1fr)">
+<div class="section grid" style="grid-template-columns:repeat(4,1fr)">
 <div class="card"><div class="muted">Peso atual</div><div id="currentWeight" class="metric">71 kg</div></div>
 <div class="card"><div class="muted">Meta 1</div><div class="metric">75 kg</div></div>
 <div class="card"><div class="muted">Treinos concluídos</div><div id="completedCount" class="metric">0</div></div>
