@@ -33,9 +33,37 @@ const seed=[
  {name:"LIFE OS - UPPER",day:5,ex:[["Dumbbell Incline Press",[8,8,10]],["Dumbbell Chest Supported Row",[10,10,10]],["Cable Lat Pulldown",[10,10,12]],["Cable Lateral Raise",[12,12,15]],["Cable Tricep Extension",[12,12]],["Dumbbell Bicep Curl",[12,12]]]}
 ];
 async function auth(){
- const {data:{session}}=await sb.auth.getSession();
- if(session){user=session.user;boot();return}
- document.getElementById("loginBtn").onclick=async()=>{const email=prompt("E-mail do LIFE OS");if(!email)return;const pass=prompt("Senha");if(!pass)return;const {error}=await sb.auth.signInWithPassword({email,password:pass});if(error)return alert(error.message);user=(await sb.auth.getUser()).data.user;boot();}
+ const loginBtn=document.getElementById("loginBtn");
+ const emailInput=document.getElementById("loginEmail");
+ const passInput=document.getElementById("loginPassword");
+ const errorBox=document.getElementById("loginError");
+ try{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){user=session.user;boot();return}
+ }catch(err){
+  if(errorBox)errorBox.textContent="Falha ao iniciar o login. Recarregue a página.";
+  console.error("auth init",err);
+ }
+ const doLogin=async()=>{
+  const email=(emailInput?.value||"").trim();
+  const password=passInput?.value||"";
+  if(!email||!password){if(errorBox)errorBox.textContent="Preencha e-mail e senha.";return}
+  loginBtn.disabled=true;loginBtn.textContent="Entrando...";if(errorBox)errorBox.textContent="";
+  try{
+   const {data,error}=await sb.auth.signInWithPassword({email,password});
+   if(error){if(errorBox)errorBox.textContent=error.message;return}
+   user=data.user||(await sb.auth.getUser()).data.user;
+   if(!user){if(errorBox)errorBox.textContent="Não foi possível carregar sua conta.";return}
+   await boot();
+  }catch(err){
+   if(errorBox)errorBox.textContent="Erro ao conectar. Tente novamente.";
+   console.error("login",err);
+  }finally{
+   loginBtn.disabled=false;loginBtn.textContent="Entrar";
+  }
+ };
+ loginBtn.onclick=doLogin;
+ passInput?.addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
 }
 async function boot(){document.getElementById("gate").style.display="none";document.getElementById("shell").style.display="grid";await ensureSeed();await load();renderToday();await loadDashboard();await checkOpenSession();setupEvolution();}
 async function ensureSeed(){
